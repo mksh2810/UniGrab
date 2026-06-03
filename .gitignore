@@ -8,3 +8,8 @@ build/
 downloads/
 dist/
 *.egg-info/
+
+# Agent/Analyses folders
+.agents/
+graphify-out/
+.understand-anything/
