@@ -1,24 +1,24 @@
 # UniGrab
 
-A clean CLI for downloading music, videos, and podcasts from popular media sites and RSS/Atom podcast feeds.
+A clean CLI for downloading music and videos from popular media sites.
 
 This project does not bypass DRM, subscriptions, paywalls, or platform access controls. Use it only for media you own, created, licensed, or otherwise have permission to download.
 
 ## Features
 
-- Explicit modes: `m` for music, `v` for video, `p` for podcast.
-- Separate output folders: `downloads/music`, `downloads/videos`, and `downloads/podcasts`.
+- Explicit modes: `m` for music (songs, albums, playlists, podcasts/shows), `v` for video.
+- Separate output folders: `downloads/music` and `downloads/videos`.
 - **1,800+ supported sites** via yt-dlp, including YouTube, Instagram, Vimeo, TikTok, Twitch, Reddit, Twitter/X, Facebook, SoundCloud, and many more.
 - **Internet Archive** (archive.org) public domain media with rich metadata extraction.
 - **M3U/M3U8 playlist support** for IPTV streams, HLS playlists, and local media lists.
-- Playlist, album, and podcast feed downloads create a nested folder with the collection name.
-- Music and podcast formats: `aac`, `alac`, `flac`, `m4a`, `mp3`, `ogg`, `opus`, `vorbis`, `wav`.
+- Playlist, album, and show downloads create a nested folder with the collection name.
+- Music formats: `aac`, `alac`, `flac`, `m4a`, `mp3`, `ogg`, `opus`, `vorbis`, `wav`.
 - Video containers: `mp4`, `mkv`, `webm`.
 - Video quality from `144p` to `8k`, plus `best` for highest available.
 - **Cookie support** for authenticated downloads (age-restricted content, subscriber VODs).
 - **Geo-bypass** for region-restricted but freely available content.
-- **Subtitle downloads** for videos when available.
-- Per-item metadata display and progress bars.
+- **Subtitle downloads** for videos when available (automatically non-fatal).
+- Adaptively sized real-time progress bars (up to 100 characters wide).
 - File names use only the media title; metadata is written into file tags when possible.
 - Uses `yt-dlp` and `imageio-ffmpeg` from `requirements.txt`.
 
@@ -36,15 +36,14 @@ Start the interactive downloader:
 python unigrab.py
 ```
 
-Choose music, video, or podcast, paste the link, and UniGrab will continue with the download.
+Choose music or video, paste the link, and UniGrab will continue with the download.
 
 You can also use direct commands. The first argument after `download` chooses what kind of file to download:
 
 | Mode | Use for | Output folder |
 | --- | --- | --- |
-| `m` | Music, songs, albums, music playlists | `downloads/music` |
+| `m` | Songs, albums, playlists, podcasts, and audio shows | `downloads/music` |
 | `v` | Videos from supported websites | `downloads/videos` |
-| `p` | Podcast episodes and feeds | `downloads/podcasts` |
 
 Music:
 
@@ -80,19 +79,6 @@ python unigrab.py download v "https://example.com/streams.m3u8"
 python unigrab.py download v "./my_playlist.m3u"
 ```
 
-Podcast feed:
-
-```powershell
-python unigrab.py download p "https://example.com/feed.xml" --format m4a
-```
-
-Podcast mode supports RSS feeds and direct episode audio URLs. Spotify, Apple Podcasts, Amazon Music, Audible, and similar platform pages are resolved to real RSS/audio when possible through PodcastIndex public search. For more accurate episode-level matching, set PodcastIndex credentials:
-
-```powershell
-$env:PODCASTINDEX_API_KEY="your-api-key"
-$env:PODCASTINDEX_API_SECRET="your-api-secret"
-```
-
 ## Advanced Options
 
 ### Cookies for authenticated content
@@ -120,7 +106,7 @@ python unigrab.py download v "URL" --geo-bypass
 
 ### Subtitles
 
-Download subtitles along with video (converted to SRT):
+Download subtitles along with video (converted to SRT and optionally burned in):
 
 ```powershell
 python unigrab.py download v "URL" --subs
