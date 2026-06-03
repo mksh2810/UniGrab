@@ -29,6 +29,26 @@ def _getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
 socket.getaddrinfo = _getaddrinfo_ipv4
 
 
+# Reconfigure stdout/stderr to avoid UnicodeEncodeErrors on Windows terminals with cp1252
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        try:
+            sys.stdout.reconfigure(errors="replace")
+        except Exception:
+            pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        try:
+            sys.stderr.reconfigure(errors="replace")
+        except Exception:
+            pass
+
+
+
 class UniGrabError(Exception):
     """Base error for expected application failures."""
 
@@ -48,6 +68,18 @@ class MetadataResolutionError(UniGrabError):
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 
+def remove_emojis(text: str, fallback: str = "") -> str:
+    if not text:
+        return text
+    import unicodedata
+    cleaned = "".join(
+        c for c in text
+        if unicodedata.category(c) not in {"So", "Cs"} and ord(c) <= 0xFFFF
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned or fallback
+
+
 @dataclass(slots=True)
 class Track:
     title: str
@@ -59,6 +91,13 @@ class Track:
     platform: str | None = None
     track_number: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        self.title = remove_emojis(self.title, fallback="Unknown Title")
+        if self.artist:
+            self.artist = remove_emojis(self.artist, fallback="Unknown Artist")
+        if self.album:
+            self.album = remove_emojis(self.album, fallback="Unknown Album")
 
     @property
     def query(self) -> str:
@@ -86,6 +125,10 @@ class ResolvedSource:
     platform: str
     tracks: list[Track]
     title: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.title:
+            self.title = remove_emojis(self.title, fallback="Unknown Show")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1090,6 +1133,8 @@ class YtDlpDownloader:
                     reporter.start_track(track, index, len(tracks))
                 result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
                 self._tag_file(result.output_path, track)
+                if options.media_type == "video":
+                    self._download_subtitles(track, options, output_dir, index)
                 self._burn_subtitles(result.output_path, options)
             if reporter:
                 reporter.finish_track(result, index, len(tracks))
@@ -1115,6 +1160,7 @@ class YtDlpDownloader:
             "--embed-metadata",
             "--no-mtime",
             "--no-warnings",
+            "--progress",
             "--newline",
             "--print",
             "after_move:filepath",
@@ -1145,8 +1191,6 @@ class YtDlpDownloader:
             args.extend(["--cookies", options.cookies_file])
         if options.geo_bypass:
             args.append("--geo-bypass")
-        if options.media_type == "video":
-            args.extend(["--write-subs"])
         args.append(target)
         return args
 
@@ -1351,6 +1395,39 @@ class YtDlpDownloader:
                 audio.save()
         except Exception as exc:
             print(f"Warning: Could not tag audio file: {exc}")
+
+    @staticmethod
+    def _download_subtitles(track: Track, options: DownloadOptions, output_dir: Path, index: int) -> None:
+        target = YtDlpDownloader._target_for_track(track, options)
+        stem = YtDlpDownloader._output_stem(track, index)
+        output_template = str(output_dir / f"{stem}.%(ext)s")
+
+        args = [
+            *yt_dlp_command(required=False),
+            "--skip-download",
+            "--write-subs",
+            "--output",
+            output_template,
+            "--no-warnings",
+        ]
+        ffmpeg_path = bundled_ffmpeg_path(required=False)
+        if ffmpeg_path:
+            args.extend(["--ffmpeg-location", ffmpeg_path])
+        if options.cookies_file:
+            args.extend(["--cookies", options.cookies_file])
+        if options.geo_bypass:
+            args.append("--geo-bypass")
+        args.append(target)
+
+        try:
+            subprocess.run(
+                args,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=False,
+            )
+        except Exception:
+            pass
 
     @staticmethod
     def _burn_subtitles(output_path: Path | None, options: DownloadOptions) -> None:
@@ -1852,13 +1929,14 @@ class ReferenceDownloadReporter:
         self.last_line_length = len(line)
 
 
-def progress_bar(fraction: float | None, width: int = 24) -> str:
+def progress_bar(fraction: float | None, width: int = 100) -> str:
     if fraction is None:
-        return f"[{'?' * width}]   --.-%"
+        return f"[{'?' * width}]   --%"
     fraction = max(0.0, min(fraction, 1.0))
     filled = round(width * fraction)
     empty = width - filled
-    return f"[{'#' * filled}{'-' * empty}] {fraction * 100:5.1f}%"
+    percent = round(fraction * 100)
+    return f"[{'#' * filled}{'-' * empty}] {percent:3d}%"
 
 
 def format_duration(seconds: int | float | None) -> str | None:

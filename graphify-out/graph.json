@@ -42,9 +42,9 @@
       "label": "UniGrabError",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L32",
+      "source_location": "L52",
       "id": "unigrab_unigrab_unigraberror",
-      "community": 3,
+      "community": 19,
       "norm_label": "unigraberror"
     },
     {
@@ -53,23 +53,23 @@
       "source_file": "",
       "source_location": "",
       "id": "exception",
-      "community": 3,
+      "community": 19,
       "norm_label": "exception"
     },
     {
       "label": "DependencyMissingError",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L36",
+      "source_location": "L56",
       "id": "unigrab_unigrab_dependencymissingerror",
-      "community": 3,
+      "community": 19,
       "norm_label": "dependencymissingerror"
     },
     {
       "label": "UnsupportedSourceError",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L40",
+      "source_location": "L60",
       "id": "unigrab_unigrab_unsupportedsourceerror",
       "community": 2,
       "norm_label": "unsupportedsourceerror"
@@ -78,25 +78,43 @@
       "label": "MetadataResolutionError",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L44",
+      "source_location": "L64",
       "id": "unigrab_unigrab_metadataresolutionerror",
-      "community": 13,
+      "community": 19,
       "norm_label": "metadataresolutionerror"
+    },
+    {
+      "label": "remove_emojis()",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": "L71",
+      "id": "unigrab_unigrab_remove_emojis",
+      "community": 4,
+      "norm_label": "remove_emojis()"
     },
     {
       "label": "Track",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L52",
+      "source_location": "L84",
       "id": "unigrab_unigrab_track",
-      "community": 2,
+      "community": 4,
       "norm_label": "track"
+    },
+    {
+      "label": ".__post_init__()",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": "L95",
+      "id": "unigrab_unigrab_track_post_init",
+      "community": 4,
+      "norm_label": ".__post_init__()"
     },
     {
       "label": "query()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L64",
+      "source_location": "L103",
       "id": "unigrab_unigrab_query",
       "community": 3,
       "norm_label": "query()"
@@ -105,34 +123,43 @@
       "label": ".to_dict()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L68",
+      "source_location": "L107",
       "id": "unigrab_unigrab_track_to_dict",
-      "community": 2,
+      "community": 4,
       "norm_label": ".to_dict()"
     },
     {
       "label": "ResolvedSource",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L83",
+      "source_location": "L122",
       "id": "unigrab_unigrab_resolvedsource",
-      "community": 2,
+      "community": 4,
       "norm_label": "resolvedsource"
+    },
+    {
+      "label": ".__post_init__()",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": "L129",
+      "id": "unigrab_unigrab_resolvedsource_post_init",
+      "community": 4,
+      "norm_label": ".__post_init__()"
     },
     {
       "label": ".to_dict()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L90",
+      "source_location": "L133",
       "id": "unigrab_unigrab_resolvedsource_to_dict",
-      "community": 0,
+      "community": 3,
       "norm_label": ".to_dict()"
     },
     {
       "label": "is_url()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L109",
+      "source_location": "L152",
       "id": "unigrab_unigrab_is_url",
       "community": 13,
       "norm_label": "is_url()"
@@ -141,7 +168,7 @@
       "label": "hostname()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L114",
+      "source_location": "L157",
       "id": "unigrab_unigrab_hostname",
       "community": 1,
       "norm_label": "hostname()"
@@ -150,7 +177,7 @@
       "label": "clean_filename()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L118",
+      "source_location": "L161",
       "id": "unigrab_unigrab_clean_filename",
       "community": 3,
       "norm_label": "clean_filename()"
@@ -159,7 +186,7 @@
       "label": "title_from_url_slug()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L128",
+      "source_location": "L171",
       "id": "unigrab_unigrab_title_from_url_slug",
       "community": 2,
       "norm_label": "title_from_url_slug()"
@@ -168,16 +195,16 @@
       "label": "run_json_command()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L138",
+      "source_location": "L181",
       "id": "unigrab_unigrab_run_json_command",
-      "community": 3,
+      "community": 19,
       "norm_label": "run_json_command()"
     },
     {
       "label": "http_json()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L159",
+      "source_location": "L202",
       "id": "unigrab_unigrab_http_json",
       "community": 2,
       "norm_label": "http_json()"
@@ -186,16 +213,16 @@
       "label": "http_text()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L179",
+      "source_location": "L222",
       "id": "unigrab_unigrab_http_text",
-      "community": 13,
+      "community": 4,
       "norm_label": "http_text()"
     },
     {
       "label": "ensure_directory()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L197",
+      "source_location": "L240",
       "id": "unigrab_unigrab_ensure_directory",
       "community": 3,
       "norm_label": "ensure_directory()"
@@ -204,7 +231,7 @@
       "label": "yt_dlp_command()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L201",
+      "source_location": "L244",
       "id": "unigrab_unigrab_yt_dlp_command",
       "community": 3,
       "norm_label": "yt_dlp_command()"
@@ -213,7 +240,7 @@
       "label": "bundled_ffmpeg_path()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L210",
+      "source_location": "L253",
       "id": "unigrab_unigrab_bundled_ffmpeg_path",
       "community": 3,
       "norm_label": "bundled_ffmpeg_path()"
@@ -222,7 +249,7 @@
       "label": "python_package_status()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L233",
+      "source_location": "L276",
       "id": "unigrab_unigrab_python_package_status",
       "community": 3,
       "norm_label": "python_package_status()"
@@ -231,7 +258,7 @@
       "label": "Resolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L236",
+      "source_location": "L279",
       "id": "unigrab_unigrab_resolver",
       "community": 6,
       "norm_label": "resolver"
@@ -249,7 +276,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L237",
+      "source_location": "L280",
       "id": "unigrab_unigrab_resolver_can_resolve",
       "community": 6,
       "norm_label": ".can_resolve()"
@@ -258,7 +285,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L240",
+      "source_location": "L283",
       "id": "unigrab_unigrab_resolver_resolve",
       "community": 6,
       "norm_label": ".resolve()"
@@ -267,16 +294,16 @@
       "label": "ResolverRegistry",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L244",
+      "source_location": "L287",
       "id": "unigrab_unigrab_resolverregistry",
-      "community": 0,
+      "community": 3,
       "norm_label": "resolverregistry"
     },
     {
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L245",
+      "source_location": "L288",
       "id": "unigrab_unigrab_resolverregistry_init",
       "community": 1,
       "norm_label": ".__init__()"
@@ -285,7 +312,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L257",
+      "source_location": "L300",
       "id": "unigrab_unigrab_resolverregistry_resolve",
       "community": 2,
       "norm_label": ".resolve()"
@@ -294,7 +321,7 @@
       "label": "BlockedSourceResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L271",
+      "source_location": "L314",
       "id": "unigrab_unigrab_blockedsourceresolver",
       "community": 1,
       "norm_label": "blockedsourceresolver"
@@ -303,7 +330,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L274",
+      "source_location": "L317",
       "id": "unigrab_unigrab_blockedsourceresolver_can_resolve",
       "community": 1,
       "norm_label": ".can_resolve()"
@@ -312,7 +339,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L277",
+      "source_location": "L320",
       "id": "unigrab_unigrab_blockedsourceresolver_resolve",
       "community": 1,
       "norm_label": ".resolve()"
@@ -321,34 +348,34 @@
       "label": "QueryResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L281",
+      "source_location": "L324",
       "id": "unigrab_unigrab_queryresolver",
-      "community": 13,
+      "community": 1,
       "norm_label": "queryresolver"
     },
     {
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L282",
+      "source_location": "L325",
       "id": "unigrab_unigrab_queryresolver_can_resolve",
-      "community": 13,
+      "community": 1,
       "norm_label": ".can_resolve()"
     },
     {
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L285",
+      "source_location": "L328",
       "id": "unigrab_unigrab_queryresolver_resolve",
-      "community": 13,
+      "community": 4,
       "norm_label": ".resolve()"
     },
     {
       "label": "M3UPlaylistResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L295",
+      "source_location": "L338",
       "id": "unigrab_unigrab_m3uplaylistresolver",
       "community": 13,
       "norm_label": "m3uplaylistresolver"
@@ -357,7 +384,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L298",
+      "source_location": "L341",
       "id": "unigrab_unigrab_m3uplaylistresolver_can_resolve",
       "community": 13,
       "norm_label": ".can_resolve()"
@@ -366,7 +393,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L309",
+      "source_location": "L352",
       "id": "unigrab_unigrab_m3uplaylistresolver_resolve",
       "community": 13,
       "norm_label": ".resolve()"
@@ -375,7 +402,7 @@
       "label": "_read_playlist()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L324",
+      "source_location": "L367",
       "id": "unigrab_unigrab_read_playlist",
       "community": 13,
       "norm_label": "_read_playlist()"
@@ -384,7 +411,7 @@
       "label": "_parse_m3u()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L333",
+      "source_location": "L376",
       "id": "unigrab_unigrab_parse_m3u",
       "community": 13,
       "norm_label": "_parse_m3u()"
@@ -393,7 +420,7 @@
       "label": "_playlist_title()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L388",
+      "source_location": "L431",
       "id": "unigrab_unigrab_playlist_title",
       "community": 13,
       "norm_label": "_playlist_title()"
@@ -402,7 +429,7 @@
       "label": "ArchiveOrgResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L397",
+      "source_location": "L440",
       "id": "unigrab_unigrab_archiveorgresolver",
       "community": 1,
       "norm_label": "archiveorgresolver"
@@ -411,7 +438,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L403",
+      "source_location": "L446",
       "id": "unigrab_unigrab_archiveorgresolver_can_resolve",
       "community": 1,
       "norm_label": ".can_resolve()"
@@ -420,43 +447,43 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L406",
+      "source_location": "L449",
       "id": "unigrab_unigrab_archiveorgresolver_resolve",
-      "community": 2,
+      "community": 4,
       "norm_label": ".resolve()"
     },
     {
       "label": "_extract_identifier()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L472",
+      "source_location": "L515",
       "id": "unigrab_unigrab_extract_identifier",
-      "community": 2,
+      "community": 4,
       "norm_label": "_extract_identifier()"
     },
     {
       "label": "_fetch_metadata()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L480",
+      "source_location": "L523",
       "id": "unigrab_unigrab_fetch_metadata",
-      "community": 2,
+      "community": 4,
       "norm_label": "_fetch_metadata()"
     },
     {
       "label": "_filter_media_files()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L486",
+      "source_location": "L529",
       "id": "unigrab_unigrab_filter_media_files",
-      "community": 2,
+      "community": 4,
       "norm_label": "_filter_media_files()"
     },
     {
       "label": "YtDlpMetadataResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L517",
+      "source_location": "L560",
       "id": "unigrab_unigrab_ytdlpmetadataresolver",
       "community": 1,
       "norm_label": "ytdlpmetadataresolver"
@@ -465,7 +492,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L529",
+      "source_location": "L572",
       "id": "unigrab_unigrab_ytdlpmetadataresolver_can_resolve",
       "community": 1,
       "norm_label": ".can_resolve()"
@@ -474,7 +501,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L532",
+      "source_location": "L575",
       "id": "unigrab_unigrab_ytdlpmetadataresolver_resolve",
       "community": 1,
       "norm_label": ".resolve()"
@@ -483,7 +510,7 @@
       "label": "_is_youtube_host()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L561",
+      "source_location": "L604",
       "id": "unigrab_unigrab_is_youtube_host",
       "community": 1,
       "norm_label": "_is_youtube_host()"
@@ -492,7 +519,7 @@
       "label": "_is_youtube_single()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L565",
+      "source_location": "L608",
       "id": "unigrab_unigrab_is_youtube_single",
       "community": 1,
       "norm_label": "_is_youtube_single()"
@@ -501,7 +528,7 @@
       "label": "_is_explicit_playlist()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L573",
+      "source_location": "L616",
       "id": "unigrab_unigrab_is_explicit_playlist",
       "community": 1,
       "norm_label": "_is_explicit_playlist()"
@@ -510,7 +537,7 @@
       "label": "_single_video_url()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L582",
+      "source_location": "L625",
       "id": "unigrab_unigrab_single_video_url",
       "community": 1,
       "norm_label": "_single_video_url()"
@@ -519,7 +546,7 @@
       "label": "_fallback_title()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L592",
+      "source_location": "L635",
       "id": "unigrab_unigrab_fallback_title",
       "community": 1,
       "norm_label": "_fallback_title()"
@@ -528,7 +555,7 @@
       "label": "_fallback_resolved_source()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L600",
+      "source_location": "L643",
       "id": "unigrab_unigrab_fallback_resolved_source",
       "community": 1,
       "norm_label": "_fallback_resolved_source()"
@@ -537,7 +564,7 @@
       "label": "_youtube_oembed_metadata()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L625",
+      "source_location": "L668",
       "id": "unigrab_unigrab_youtube_oembed_metadata",
       "community": 2,
       "norm_label": "_youtube_oembed_metadata()"
@@ -546,7 +573,7 @@
       "label": "_open_graph_metadata()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L644",
+      "source_location": "L687",
       "id": "unigrab_unigrab_open_graph_metadata",
       "community": 2,
       "norm_label": "_open_graph_metadata()"
@@ -555,7 +582,7 @@
       "label": "_track_from_yt_info()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L679",
+      "source_location": "L722",
       "id": "unigrab_unigrab_track_from_yt_info",
       "community": 1,
       "norm_label": "_track_from_yt_info()"
@@ -564,25 +591,25 @@
       "label": "_artist_values()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L699",
+      "source_location": "L742",
       "id": "unigrab_unigrab_artist_values",
-      "community": 2,
+      "community": 1,
       "norm_label": "_artist_values()"
     },
     {
       "label": "SpotifyResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L716",
+      "source_location": "L759",
       "id": "unigrab_unigrab_spotifyresolver",
-      "community": 2,
+      "community": 1,
       "norm_label": "spotifyresolver"
     },
     {
       "label": "is_spotify()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L720",
+      "source_location": "L763",
       "id": "unigrab_unigrab_is_spotify",
       "community": 1,
       "norm_label": "is_spotify()"
@@ -591,7 +618,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L723",
+      "source_location": "L766",
       "id": "unigrab_unigrab_spotifyresolver_can_resolve",
       "community": 1,
       "norm_label": ".can_resolve()"
@@ -600,16 +627,16 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L726",
+      "source_location": "L769",
       "id": "unigrab_unigrab_spotifyresolver_resolve",
-      "community": 2,
+      "community": 4,
       "norm_label": ".resolve()"
     },
     {
       "label": "_parse_url()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L761",
+      "source_location": "L804",
       "id": "unigrab_unigrab_parse_url",
       "community": 2,
       "norm_label": "_parse_url()"
@@ -618,52 +645,52 @@
       "label": "_client_credentials_token()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L769",
+      "source_location": "L812",
       "id": "unigrab_unigrab_client_credentials_token",
-      "community": 2,
+      "community": 19,
       "norm_label": "_client_credentials_token()"
     },
     {
       "label": "_get_json()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L795",
+      "source_location": "L838",
       "id": "unigrab_unigrab_get_json",
-      "community": 2,
+      "community": 4,
       "norm_label": "_get_json()"
     },
     {
       "label": "_resolve_without_api()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L817",
+      "source_location": "L860",
       "id": "unigrab_unigrab_resolve_without_api",
-      "community": 2,
+      "community": 4,
       "norm_label": "_resolve_without_api()"
     },
     {
       "label": "_clean_oembed_title()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L852",
+      "source_location": "L895",
       "id": "unigrab_unigrab_clean_oembed_title",
-      "community": 2,
+      "community": 4,
       "norm_label": "_clean_oembed_title()"
     },
     {
       "label": "_split_spotify_title()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L857",
+      "source_location": "L900",
       "id": "unigrab_unigrab_split_spotify_title",
-      "community": 2,
+      "community": 4,
       "norm_label": "_split_spotify_title()"
     },
     {
       "label": "AppleMusicResolver",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L870",
+      "source_location": "L913",
       "id": "unigrab_unigrab_applemusicresolver",
       "community": 1,
       "norm_label": "applemusicresolver"
@@ -672,7 +699,7 @@
       "label": "is_apple()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L872",
+      "source_location": "L915",
       "id": "unigrab_unigrab_is_apple",
       "community": 1,
       "norm_label": "is_apple()"
@@ -681,7 +708,7 @@
       "label": ".can_resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L876",
+      "source_location": "L919",
       "id": "unigrab_unigrab_applemusicresolver_can_resolve",
       "community": 1,
       "norm_label": ".can_resolve()"
@@ -690,7 +717,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L879",
+      "source_location": "L922",
       "id": "unigrab_unigrab_applemusicresolver_resolve",
       "community": 2,
       "norm_label": ".resolve()"
@@ -699,7 +726,7 @@
       "label": "_track_id()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L896",
+      "source_location": "L939",
       "id": "unigrab_unigrab_track_id",
       "community": 2,
       "norm_label": "_track_id()"
@@ -708,25 +735,25 @@
       "label": "normalize_artist_values()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L919",
+      "source_location": "L962",
       "id": "unigrab_unigrab_normalize_artist_values",
-      "community": 2,
+      "community": 4,
       "norm_label": "normalize_artist_values()"
     },
     {
       "label": "unique_preserving_order()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L938",
+      "source_location": "L981",
       "id": "unigrab_unigrab_unique_preserving_order",
-      "community": 2,
+      "community": 4,
       "norm_label": "unique_preserving_order()"
     },
     {
       "label": "normalize_match_text()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L949",
+      "source_location": "L992",
       "id": "unigrab_unigrab_normalize_match_text",
       "community": 2,
       "norm_label": "normalize_match_text()"
@@ -735,7 +762,7 @@
       "label": "similarity_score()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L955",
+      "source_location": "L998",
       "id": "unigrab_unigrab_similarity_score",
       "community": 2,
       "norm_label": "similarity_score()"
@@ -744,34 +771,34 @@
       "label": "text_or_none()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L969",
+      "source_location": "L1012",
       "id": "unigrab_unigrab_text_or_none",
-      "community": 2,
+      "community": 4,
       "norm_label": "text_or_none()"
     },
     {
       "label": "parse_duration()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L976",
+      "source_location": "L1019",
       "id": "unigrab_unigrab_parse_duration",
-      "community": 2,
+      "community": 4,
       "norm_label": "parse_duration()"
     },
     {
       "label": "DownloadOptions",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1026",
+      "source_location": "L1069",
       "id": "unigrab_unigrab_downloadoptions",
-      "community": 0,
+      "community": 3,
       "norm_label": "downloadoptions"
     },
     {
       "label": "DownloadResult",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1051",
+      "source_location": "L1094",
       "id": "unigrab_unigrab_downloadresult",
       "community": 3,
       "norm_label": "downloadresult"
@@ -780,7 +807,7 @@
       "label": "DownloadReporter",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1057",
+      "source_location": "L1100",
       "id": "unigrab_unigrab_downloadreporter",
       "community": 6,
       "norm_label": "downloadreporter"
@@ -789,7 +816,7 @@
       "label": ".start_collection()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1058",
+      "source_location": "L1101",
       "id": "unigrab_unigrab_downloadreporter_start_collection",
       "community": 6,
       "norm_label": ".start_collection()"
@@ -798,7 +825,7 @@
       "label": ".start_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1061",
+      "source_location": "L1104",
       "id": "unigrab_unigrab_downloadreporter_start_track",
       "community": 6,
       "norm_label": ".start_track()"
@@ -807,7 +834,7 @@
       "label": ".progress()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1064",
+      "source_location": "L1107",
       "id": "unigrab_unigrab_downloadreporter_progress",
       "community": 6,
       "norm_label": ".progress()"
@@ -816,7 +843,7 @@
       "label": ".finish_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1067",
+      "source_location": "L1110",
       "id": "unigrab_unigrab_downloadreporter_finish_track",
       "community": 6,
       "norm_label": ".finish_track()"
@@ -825,7 +852,7 @@
       "label": "YtDlpDownloader",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1071",
+      "source_location": "L1114",
       "id": "unigrab_unigrab_ytdlpdownloader",
       "community": 3,
       "norm_label": "ytdlpdownloader"
@@ -834,7 +861,7 @@
       "label": ".download()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1072",
+      "source_location": "L1115",
       "id": "unigrab_unigrab_ytdlpdownloader_download",
       "community": 3,
       "norm_label": ".download()"
@@ -843,7 +870,7 @@
       "label": ".build_command()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1100",
+      "source_location": "L1145",
       "id": "unigrab_unigrab_ytdlpdownloader_build_command",
       "community": 3,
       "norm_label": ".build_command()"
@@ -852,7 +879,7 @@
       "label": "output_dir_for()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1154",
+      "source_location": "L1198",
       "id": "unigrab_unigrab_output_dir_for",
       "community": 3,
       "norm_label": "output_dir_for()"
@@ -861,7 +888,7 @@
       "label": "_target_for_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1161",
+      "source_location": "L1205",
       "id": "unigrab_unigrab_target_for_track",
       "community": 3,
       "norm_label": "_target_for_track()"
@@ -870,7 +897,7 @@
       "label": "_output_stem()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1171",
+      "source_location": "L1215",
       "id": "unigrab_unigrab_output_stem",
       "community": 3,
       "norm_label": "_output_stem()"
@@ -879,7 +906,7 @@
       "label": "_validate_options()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1175",
+      "source_location": "L1219",
       "id": "unigrab_unigrab_validate_options",
       "community": 3,
       "norm_label": "_validate_options()"
@@ -888,25 +915,25 @@
       "label": "_run()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1193",
+      "source_location": "L1237",
       "id": "unigrab_unigrab_run",
-      "community": 3,
+      "community": 19,
       "norm_label": "_run()"
     },
     {
       "label": "_progress_fraction()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1245",
+      "source_location": "L1289",
       "id": "unigrab_unigrab_progress_fraction",
-      "community": 3,
+      "community": 19,
       "norm_label": "_progress_fraction()"
     },
     {
       "label": "_normalize_track_number()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1252",
+      "source_location": "L1296",
       "id": "unigrab_unigrab_normalize_track_number",
       "community": 3,
       "norm_label": "_normalize_track_number()"
@@ -915,7 +942,7 @@
       "label": "_artist_values_from_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1261",
+      "source_location": "L1305",
       "id": "unigrab_unigrab_artist_values_from_track",
       "community": 3,
       "norm_label": "_artist_values_from_track()"
@@ -924,16 +951,16 @@
       "label": "_unique_values()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1288",
+      "source_location": "L1332",
       "id": "unigrab_unigrab_unique_values",
-      "community": 2,
+      "community": 4,
       "norm_label": "_unique_values()"
     },
     {
       "label": "_audio_codec()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1299",
+      "source_location": "L1343",
       "id": "unigrab_unigrab_audio_codec",
       "community": 3,
       "norm_label": "_audio_codec()"
@@ -942,7 +969,7 @@
       "label": "_format_selector()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1303",
+      "source_location": "L1347",
       "id": "unigrab_unigrab_format_selector",
       "community": 3,
       "norm_label": "_format_selector()"
@@ -951,16 +978,25 @@
       "label": "_tag_file()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1312",
+      "source_location": "L1356",
       "id": "unigrab_unigrab_tag_file",
       "community": 3,
       "norm_label": "_tag_file()"
     },
     {
+      "label": "_download_subtitles()",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": "L1400",
+      "id": "unigrab_unigrab_download_subtitles",
+      "community": 3,
+      "norm_label": "_download_subtitles()"
+    },
+    {
       "label": "_burn_subtitles()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1356",
+      "source_location": "L1433",
       "id": "unigrab_unigrab_burn_subtitles",
       "community": 3,
       "norm_label": "_burn_subtitles()"
@@ -969,115 +1005,115 @@
       "label": "ensure_dependencies()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1470",
+      "source_location": "L1547",
       "id": "unigrab_unigrab_ensure_dependencies",
-      "community": 0,
+      "community": 20,
       "norm_label": "ensure_dependencies()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1500",
+      "source_location": "L1577",
       "id": "unigrab_unigrab_main",
-      "community": 0,
+      "community": 3,
       "norm_label": "main()"
     },
     {
       "label": "interactive()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1543",
+      "source_location": "L1620",
       "id": "unigrab_unigrab_interactive",
-      "community": 0,
+      "community": 3,
       "norm_label": "interactive()"
     },
     {
       "label": "prompt_mode()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1583",
+      "source_location": "L1660",
       "id": "unigrab_unigrab_prompt_mode",
-      "community": 0,
+      "community": 3,
       "norm_label": "prompt_mode()"
     },
     {
       "label": "source_prompt_for_mode()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1605",
+      "source_location": "L1682",
       "id": "unigrab_unigrab_source_prompt_for_mode",
-      "community": 0,
+      "community": 3,
       "norm_label": "source_prompt_for_mode()"
     },
     {
       "label": "print_interactive_metadata()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1612",
+      "source_location": "L1689",
       "id": "unigrab_unigrab_print_interactive_metadata",
-      "community": 5,
+      "community": 3,
       "norm_label": "print_interactive_metadata()"
     },
     {
       "label": "metadata_value()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1653",
+      "source_location": "L1730",
       "id": "unigrab_unigrab_metadata_value",
-      "community": 5,
+      "community": 3,
       "norm_label": "metadata_value()"
     },
     {
       "label": "metadata_bool()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1663",
+      "source_location": "L1740",
       "id": "unigrab_unigrab_metadata_bool",
-      "community": 5,
+      "community": 3,
       "norm_label": "metadata_bool()"
     },
     {
       "label": "build_parser()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1671",
+      "source_location": "L1748",
       "id": "unigrab_unigrab_build_parser",
-      "community": 0,
+      "community": 3,
       "norm_label": "build_parser()"
     },
     {
       "label": "metadata()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1709",
+      "source_location": "L1786",
       "id": "unigrab_unigrab_metadata",
-      "community": 0,
+      "community": 3,
       "norm_label": "metadata()"
     },
     {
       "label": "download()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1723",
+      "source_location": "L1800",
       "id": "unigrab_unigrab_download",
-      "community": 0,
+      "community": 3,
       "norm_label": "download()"
     },
     {
       "label": "media_type_from_mode()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1750",
+      "source_location": "L1827",
       "id": "unigrab_unigrab_media_type_from_mode",
-      "community": 0,
+      "community": 3,
       "norm_label": "media_type_from_mode()"
     },
     {
       "label": "ConsoleDownloadReporter",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1753",
+      "source_location": "L1830",
       "id": "unigrab_unigrab_consoledownloadreporter",
       "community": 5,
       "norm_label": "consoledownloadreporter"
@@ -1086,7 +1122,7 @@
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1754",
+      "source_location": "L1831",
       "id": "unigrab_unigrab_consoledownloadreporter_init",
       "community": 5,
       "norm_label": ".__init__()"
@@ -1095,7 +1131,7 @@
       "label": ".start_collection()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1758",
+      "source_location": "L1835",
       "id": "unigrab_unigrab_consoledownloadreporter_start_collection",
       "community": 5,
       "norm_label": ".start_collection()"
@@ -1104,7 +1140,7 @@
       "label": ".start_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1771",
+      "source_location": "L1848",
       "id": "unigrab_unigrab_consoledownloadreporter_start_track",
       "community": 5,
       "norm_label": ".start_track()"
@@ -1113,7 +1149,7 @@
       "label": ".progress()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1783",
+      "source_location": "L1860",
       "id": "unigrab_unigrab_consoledownloadreporter_progress",
       "community": 5,
       "norm_label": ".progress()"
@@ -1122,7 +1158,7 @@
       "label": ".finish_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1793",
+      "source_location": "L1870",
       "id": "unigrab_unigrab_consoledownloadreporter_finish_track",
       "community": 5,
       "norm_label": ".finish_track()"
@@ -1131,7 +1167,7 @@
       "label": "._metadata_line()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1801",
+      "source_location": "L1878",
       "id": "unigrab_unigrab_consoledownloadreporter_metadata_line",
       "community": 5,
       "norm_label": "._metadata_line()"
@@ -1140,7 +1176,7 @@
       "label": "._rewrite_line()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1805",
+      "source_location": "L1882",
       "id": "unigrab_unigrab_consoledownloadreporter_rewrite_line",
       "community": 5,
       "norm_label": "._rewrite_line()"
@@ -1149,70 +1185,70 @@
       "label": "ReferenceDownloadReporter",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1812",
+      "source_location": "L1889",
       "id": "unigrab_unigrab_referencedownloadreporter",
-      "community": 3,
+      "community": 5,
       "norm_label": "referencedownloadreporter"
     },
     {
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1813",
+      "source_location": "L1890",
       "id": "unigrab_unigrab_referencedownloadreporter_init",
-      "community": 3,
+      "community": 5,
       "norm_label": ".__init__()"
     },
     {
       "label": ".start_collection()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1817",
+      "source_location": "L1894",
       "id": "unigrab_unigrab_referencedownloadreporter_start_collection",
-      "community": 3,
+      "community": 5,
       "norm_label": ".start_collection()"
     },
     {
       "label": ".start_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1822",
+      "source_location": "L1899",
       "id": "unigrab_unigrab_referencedownloadreporter_start_track",
-      "community": 3,
+      "community": 5,
       "norm_label": ".start_track()"
     },
     {
       "label": ".progress()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1831",
+      "source_location": "L1908",
       "id": "unigrab_unigrab_referencedownloadreporter_progress",
-      "community": 3,
+      "community": 5,
       "norm_label": ".progress()"
     },
     {
       "label": ".finish_track()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1841",
+      "source_location": "L1918",
       "id": "unigrab_unigrab_referencedownloadreporter_finish_track",
-      "community": 3,
+      "community": 5,
       "norm_label": ".finish_track()"
     },
     {
       "label": "._rewrite_line()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1848",
+      "source_location": "L1925",
       "id": "unigrab_unigrab_referencedownloadreporter_rewrite_line",
-      "community": 3,
+      "community": 5,
       "norm_label": "._rewrite_line()"
     },
     {
       "label": "progress_bar()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1855",
+      "source_location": "L1932",
       "id": "unigrab_unigrab_progress_bar",
       "community": 5,
       "norm_label": "progress_bar()"
@@ -1221,7 +1257,7 @@
       "label": "format_duration()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1864",
+      "source_location": "L1942",
       "id": "unigrab_unigrab_format_duration",
       "community": 5,
       "norm_label": "format_duration()"
@@ -1230,7 +1266,7 @@
       "label": "doctor()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1875",
+      "source_location": "L1953",
       "id": "unigrab_unigrab_doctor",
       "community": 3,
       "norm_label": "doctor()"
@@ -1239,16 +1275,16 @@
       "label": "formats()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1886",
+      "source_location": "L1964",
       "id": "unigrab_unigrab_formats",
-      "community": 0,
+      "community": 3,
       "norm_label": "formats()"
     },
     {
       "label": "shell_join()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1894",
+      "source_location": "L1972",
       "id": "unigrab_unigrab_shell_join",
       "community": 3,
       "norm_label": "shell_join()"
@@ -1257,7 +1293,7 @@
       "label": "quote_arg()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1898",
+      "source_location": "L1976",
       "id": "unigrab_unigrab_quote_arg",
       "community": 3,
       "norm_label": "quote_arg()"
@@ -1266,7 +1302,7 @@
       "label": "sources()",
       "file_type": "code",
       "source_file": "unigrab.py",
-      "source_location": "L1905",
+      "source_location": "L1983",
       "id": "unigrab_unigrab_sources",
       "community": 0,
       "norm_label": "sources()"
@@ -1275,26 +1311,26 @@
       "label": "Base error for expected application failures.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L33",
-      "id": "unigrab_unigrab_rationale_33",
-      "community": 3,
+      "source_location": "L53",
+      "id": "unigrab_unigrab_rationale_53",
+      "community": 19,
       "norm_label": "base error for expected application failures."
     },
     {
       "label": "Raised when a required local executable or API credential is missing.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L37",
-      "id": "unigrab_unigrab_rationale_37",
-      "community": 3,
+      "source_location": "L57",
+      "id": "unigrab_unigrab_rationale_57",
+      "community": 19,
       "norm_label": "raised when a required local executable or api credential is missing."
     },
     {
       "label": "Raised when a source cannot be resolved by the configured resolvers.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L41",
-      "id": "unigrab_unigrab_rationale_41",
+      "source_location": "L61",
+      "id": "unigrab_unigrab_rationale_61",
       "community": 2,
       "norm_label": "raised when a source cannot be resolved by the configured resolvers."
     },
@@ -1302,17 +1338,17 @@
       "label": "Raised when metadata lookup fails for a supported source.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L45",
-      "id": "unigrab_unigrab_rationale_45",
-      "community": 13,
+      "source_location": "L65",
+      "id": "unigrab_unigrab_rationale_65",
+      "community": 19,
       "norm_label": "raised when metadata lookup fails for a supported source."
     },
     {
       "label": "Resolver for M3U/M3U8 playlists (IPTV streams, HLS playlists, local media lists)",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L296",
-      "id": "unigrab_unigrab_rationale_296",
+      "source_location": "L339",
+      "id": "unigrab_unigrab_rationale_339",
       "community": 13,
       "norm_label": "resolver for m3u/m3u8 playlists (iptv streams, hls playlists, local media lists)"
     },
@@ -1320,8 +1356,8 @@
       "label": "Resolver for Internet Archive items (archive.org/details/...).",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L398",
-      "id": "unigrab_unigrab_rationale_398",
+      "source_location": "L441",
+      "id": "unigrab_unigrab_rationale_441",
       "community": 1,
       "norm_label": "resolver for internet archive items (archive.org/details/...)."
     },
@@ -1329,8 +1365,8 @@
       "label": "List all supported sites and sources.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
-      "source_location": "L1906",
-      "id": "unigrab_unigrab_rationale_1906",
+      "source_location": "L1984",
+      "id": "unigrab_unigrab_rationale_1984",
       "community": 0,
       "norm_label": "list all supported sites and sources."
     },
@@ -2073,6 +2109,69 @@
       "norm_label": "workflow: graphify"
     },
     {
+      "label": "Base error for expected application failures.",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L33",
+      "community": 19,
+      "norm_label": "base error for expected application failures.",
+      "id": "unigrab_unigrab_rationale_33"
+    },
+    {
+      "label": "Raised when a required local executable or API credential is missing.",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L37",
+      "community": 19,
+      "norm_label": "raised when a required local executable or api credential is missing.",
+      "id": "unigrab_unigrab_rationale_37"
+    },
+    {
+      "label": "Raised when a source cannot be resolved by the configured resolvers.",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L41",
+      "community": 2,
+      "norm_label": "raised when a source cannot be resolved by the configured resolvers.",
+      "id": "unigrab_unigrab_rationale_41"
+    },
+    {
+      "label": "Raised when metadata lookup fails for a supported source.",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L45",
+      "community": 19,
+      "norm_label": "raised when metadata lookup fails for a supported source.",
+      "id": "unigrab_unigrab_rationale_45"
+    },
+    {
+      "label": "Resolver for M3U/M3U8 playlists (IPTV streams, HLS playlists, local media lists)",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L296",
+      "community": 13,
+      "norm_label": "resolver for m3u/m3u8 playlists (iptv streams, hls playlists, local media lists)",
+      "id": "unigrab_unigrab_rationale_296"
+    },
+    {
+      "label": "Resolver for Internet Archive items (archive.org/details/...).",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L398",
+      "community": 1,
+      "norm_label": "resolver for internet archive items (archive.org/details/...).",
+      "id": "unigrab_unigrab_rationale_398"
+    },
+    {
+      "label": "List all supported sites and sources.",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": "L1906",
+      "community": 0,
+      "norm_label": "list all supported sites and sources.",
+      "id": "unigrab_unigrab_rationale_1906"
+    },
+    {
       "label": "List all supported sites and sources.",
       "file_type": "rationale",
       "source_file": "unigrab.py",
@@ -2329,7 +2428,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L857",
-      "community": 2,
+      "community": 4,
       "norm_label": ".resolve()",
       "id": "unigrab_unigrab_podcastfeedresolver_resolve"
     },
@@ -2338,7 +2437,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L880",
-      "community": 2,
+      "community": 4,
       "norm_label": "_track_from_rss_item()",
       "id": "unigrab_unigrab_track_from_rss_item"
     },
@@ -2347,7 +2446,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L898",
-      "community": 2,
+      "community": 4,
       "norm_label": "_track_from_atom_entry()",
       "id": "unigrab_unigrab_track_from_atom_entry"
     },
@@ -2383,7 +2482,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L1251",
-      "community": 2,
+      "community": 4,
       "norm_label": "_episode()",
       "id": "unigrab_unigrab_episode"
     },
@@ -2392,7 +2491,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L1345",
-      "community": 2,
+      "community": 4,
       "norm_label": "_fallback_podcast()",
       "id": "unigrab_unigrab_fallback_podcast"
     },
@@ -2401,7 +2500,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L1362",
-      "community": 13,
+      "community": 4,
       "norm_label": "_embed_metadata()",
       "id": "unigrab_unigrab_embed_metadata"
     },
@@ -2419,7 +2518,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L1845",
-      "community": 3,
+      "community": 19,
       "norm_label": "_download_direct_audio_with_curl()",
       "id": "unigrab_unigrab_download_direct_audio_with_curl"
     },
@@ -2464,7 +2563,7 @@
       "file_type": "code",
       "source_file": "unigrab.py",
       "source_location": "L1978",
-      "community": 3,
+      "community": 19,
       "norm_label": "_curl_progress_fraction()",
       "id": "unigrab_unigrab_curl_progress_fraction"
     },
@@ -2500,7 +2599,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L23",
-      "community": 3,
+      "community": 19,
       "norm_label": "base error for expected application failures.",
       "id": "unigrab_unigrab_rationale_23"
     },
@@ -2509,7 +2608,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L27",
-      "community": 3,
+      "community": 19,
       "norm_label": "raised when a required local executable or api credential is missing.",
       "id": "unigrab_unigrab_rationale_27"
     },
@@ -2518,7 +2617,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L31",
-      "community": 3,
+      "community": 19,
       "norm_label": "raised when a source cannot be resolved by the configured resolvers.",
       "id": "unigrab_unigrab_rationale_31"
     },
@@ -2527,7 +2626,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L35",
-      "community": 13,
+      "community": 19,
       "norm_label": "raised when metadata lookup fails for a supported source.",
       "id": "unigrab_unigrab_rationale_35"
     },
@@ -2662,7 +2761,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L39",
-      "community": 13,
+      "community": 19,
       "norm_label": "raised when metadata lookup fails for a supported source.",
       "id": "unigrab_unigrab_rationale_39"
     },
@@ -2689,7 +2788,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2165",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2165"
     },
@@ -2707,7 +2806,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2139",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2139"
     },
@@ -2725,7 +2824,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2046",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2046"
     },
@@ -2743,7 +2842,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2045",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2045"
     },
@@ -2761,7 +2860,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2042",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2042"
     },
@@ -2779,7 +2878,7 @@
       "file_type": "rationale",
       "source_file": "unigrab.py",
       "source_location": "L2043",
-      "community": 0,
+      "community": 20,
       "norm_label": "check for required packages and auto-install any that are missing.",
       "id": "unigrab_unigrab_rationale_2043"
     },
@@ -3049,6 +3148,16 @@
       "confidence_score": 1.0,
       "source": "unigrab_py",
       "target": "unigrab_unigrab_metadataresolutionerror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "unigrab_py",
+      "target": "unigrab_unigrab_remove_emojis",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3754,6 +3863,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L1400",
+      "weight": 1.0,
+      "source": "unigrab_py",
+      "target": "unigrab_unigrab_download_subtitles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L2034",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -4366,6 +4485,16 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_53",
+      "target": "unigrab_unigrab_unigraberror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L33",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -4495,6 +4624,16 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_57",
+      "target": "unigrab_unigrab_dependencymissingerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L37",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -4619,6 +4758,16 @@
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_applemusicresolver_resolve",
       "target": "unigrab_unigrab_unsupportedsourceerror"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L61",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_61",
+      "target": "unigrab_unigrab_unsupportedsourceerror",
+      "confidence_score": 1.0
     },
     {
       "relation": "rationale_for",
@@ -4841,6 +4990,16 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_65",
+      "target": "unigrab_unigrab_metadataresolutionerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L45",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -4877,6 +5036,38 @@
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_rationale_39",
       "target": "unigrab_unigrab_metadataresolutionerror"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_track_post_init",
+      "target": "unigrab_unigrab_remove_emojis",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L131",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_resolvedsource_post_init",
+      "target": "unigrab_unigrab_remove_emojis",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_track",
+      "target": "unigrab_unigrab_track_post_init",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -5052,6 +5243,16 @@
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_fallback_podcast",
       "target": "unigrab_unigrab_track"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_resolvedsource",
+      "target": "unigrab_unigrab_resolvedsource_post_init",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -5761,6 +5962,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L1406",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_download_subtitles",
+      "target": "unigrab_unigrab_yt_dlp_command",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L1431",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -5777,6 +5989,17 @@
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_validate_options",
       "target": "unigrab_unigrab_bundled_ffmpeg_path"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L1413",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_download_subtitles",
+      "target": "unigrab_unigrab_bundled_ffmpeg_path",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -6133,6 +6356,16 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L339",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_339",
+      "target": "unigrab_unigrab_m3uplaylistresolver",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L296",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -6221,6 +6454,16 @@
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_archiveorgresolver",
       "target": "unigrab_unigrab_archiveorgresolver_resolve"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L441",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_rationale_441",
+      "target": "unigrab_unigrab_archiveorgresolver",
+      "confidence_score": 1.0
     },
     {
       "relation": "rationale_for",
@@ -7453,6 +7696,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L1137",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_ytdlpdownloader_download",
+      "target": "unigrab_unigrab_download_subtitles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L1624",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -7541,11 +7795,33 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
+      "source_location": "L1401",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_download_subtitles",
+      "target": "unigrab_unigrab_target_for_track",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
       "source_location": "L1529",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "unigrab_unigrab_ytdlpdownloader_download_with_api",
       "target": "unigrab_unigrab_target_for_track"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L1402",
+      "weight": 1.0,
+      "source": "unigrab_unigrab_download_subtitles",
+      "target": "unigrab_unigrab_output_stem",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -8291,11 +8567,21 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "unigrab.py",
-      "source_location": "L1906",
+      "source_location": "L1984",
       "weight": 1.0,
-      "source": "unigrab_unigrab_rationale_1906",
+      "source": "unigrab_unigrab_rationale_1984",
       "target": "unigrab_unigrab_sources",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "unigrab.py",
+      "source_location": "L1906",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "unigrab_unigrab_rationale_1906",
+      "target": "unigrab_unigrab_sources"
     },
     {
       "relation": "rationale_for",
@@ -10286,5 +10572,5 @@
       "source_file": "unigrab.py"
     }
   ],
-  "built_at_commit": "aaece9c65d20b4ba024f4a3fd673f071e31aaf43"
+  "built_at_commit": "c9b1ca5f5d42bb9ee8e16f9a983242e84a4246b3"
 }
