@@ -1,0 +1,18 @@
+# .understandignore - patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+#
+# Built-in defaults already exclude common dependency, cache, build, media,
+# binary, lock, and generated files.
+#
+# Project-specific exclusions:
+downloads/
+graphify-out/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+*.egg-info/

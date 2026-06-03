@@ -1,0 +1,321 @@
+{
+  "nodes": [
+    {
+      "id": "unigrab_unigrab_py",
+      "label": "unigrab.py",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_resolver_registry",
+      "label": "ResolverRegistry Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_ytdlp_downloader",
+      "label": "YtDlpDownloader Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_spotify_resolver",
+      "label": "SpotifyResolver Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_apple_music_resolver",
+      "label": "AppleMusicResolver Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_podcast_platform_resolver",
+      "label": "PodcastPlatformResolver Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_podcast_index_client",
+      "label": "PodcastIndexClient Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_ytdlp_metadata_resolver",
+      "label": "YtDlpMetadataResolver Class",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_main",
+      "label": "main function",
+      "file_type": "code",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "readme_unigrab",
+      "label": "README.md Overview",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "requirements_txt",
+      "label": "requirements.txt Packages",
+      "file_type": "document",
+      "source_file": "requirements.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "graphify_rule",
+      "label": "graphify rule",
+      "file_type": "document",
+      "source_file": ".agents/rules/graphify.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "graphify_workflow",
+      "label": "graphify workflow",
+      "file_type": "document",
+      "source_file": ".agents/workflows/graphify.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "unigrab_no_bypass_drm",
+      "label": "No DRM Bypass Principle",
+      "file_type": "rationale",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Does not bypass DRM, subscriptions, paywalls, or platform access controls. Access-controlled services are used only as metadata sources."
+    },
+    {
+      "id": "unigrab_resolver_pattern",
+      "label": "Resolver Registry Pattern",
+      "file_type": "rationale",
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Enables extensible plugin-like media resolution based on URL patterns or hostname checks, allowing fallback or alternative metadata search strategies."
+    }
+  ],
+  "edges": [
+    {
+      "source": "unigrab_resolver_registry",
+      "target": "unigrab_spotify_resolver",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_resolver_registry",
+      "target": "unigrab_apple_music_resolver",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_resolver_registry",
+      "target": "unigrab_ytdlp_metadata_resolver",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_podcast_platform_resolver",
+      "target": "unigrab_podcast_index_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_main",
+      "target": "unigrab_resolver_registry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_main",
+      "target": "unigrab_ytdlp_downloader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_unigrab",
+      "target": "unigrab_unigrab_py",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_unigrab",
+      "target": "requirements_txt",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_spotify_resolver",
+      "target": "unigrab_no_bypass_drm",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_apple_music_resolver",
+      "target": "unigrab_no_bypass_drm",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_resolver_registry",
+      "target": "unigrab_resolver_pattern",
+      "relation": "rationale_for",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "graphify_workflow",
+      "target": "graphify_rule",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": ".agents/workflows/graphify.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "unigrab_spotify_resolver",
+      "target": "unigrab_apple_music_resolver",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "unigrab.py",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "unigrab_resolvers",
+      "label": "Media Resolvers",
+      "nodes": [
+        "unigrab_spotify_resolver",
+        "unigrab_apple_music_resolver",
+        "unigrab_podcast_platform_resolver",
+        "unigrab_ytdlp_metadata_resolver"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "unigrab.py"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

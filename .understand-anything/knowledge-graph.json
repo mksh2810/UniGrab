@@ -1,0 +1,2119 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "UniGrab",
+    "languages": [
+      "Python",
+      "Markdown"
+    ],
+    "frameworks": [
+      "argparse",
+      "yt-dlp",
+      "Podcast RSS/Atom",
+      "Internet Archive metadata API",
+      "Spotify Web API",
+      "Apple/iTunes lookup API",
+      "PodcastIndex API"
+    ],
+    "description": "A clean Python CLI for downloading permitted music, videos, and podcasts from supported sites, media playlists, Internet Archive items, and RSS/Atom podcast feeds.",
+    "analyzedAt": "2026-06-03T06:08:23.553Z",
+    "gitCommitHash": "uncommitted-initial-repo"
+  },
+  "nodes": [
+    {
+      "tags": [
+        "documentation",
+        "usage",
+        "cli"
+      ],
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "User-facing documentation for UniGrab, including installation, usage, supported modes, advanced options, and policy guidance."
+    },
+    {
+      "tags": [
+        "dependencies",
+        "python",
+        "runtime"
+      ],
+      "id": "config:requirements.txt",
+      "type": "config",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "summary": "Python runtime dependencies for UniGrab: yt-dlp for extraction/downloads, imageio-ffmpeg for FFmpeg access, and mutagen for tags."
+    },
+    {
+      "tags": [
+        "python",
+        "cli",
+        "downloader",
+        "resolver"
+      ],
+      "id": "file:unigrab.py",
+      "type": "file",
+      "name": "unigrab.py",
+      "filePath": "unigrab.py",
+      "summary": "Single-file Python CLI that resolves media metadata and downloads music, videos, and podcast content through yt-dlp, RSS feeds, public metadata APIs, and platform-specific resolvers."
+    },
+    {
+      "tags": [
+        "third-party",
+        "dependency"
+      ],
+      "id": "module:imageio-ffmpeg",
+      "type": "module",
+      "name": "imageio-ffmpeg",
+      "summary": "External or runtime module used by UniGrab: imageio-ffmpeg."
+    },
+    {
+      "tags": [
+        "third-party",
+        "dependency"
+      ],
+      "id": "module:mutagen",
+      "type": "module",
+      "name": "mutagen",
+      "summary": "External or runtime module used by UniGrab: mutagen."
+    },
+    {
+      "tags": [
+        "third-party",
+        "dependency"
+      ],
+      "id": "module:yt-dlp",
+      "type": "module",
+      "name": "yt-dlp",
+      "summary": "External or runtime module used by UniGrab: yt-dlp."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:__future__",
+      "type": "module",
+      "name": "__future__",
+      "summary": "Python standard library module used by UniGrab: __future__."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:argparse",
+      "type": "module",
+      "name": "argparse",
+      "summary": "Python standard library module used by UniGrab: argparse."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:base64",
+      "type": "module",
+      "name": "base64",
+      "summary": "Python standard library module used by UniGrab: base64."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:hashlib",
+      "type": "module",
+      "name": "hashlib",
+      "summary": "Python standard library module used by UniGrab: hashlib."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:html",
+      "type": "module",
+      "name": "html",
+      "summary": "Python standard library module used by UniGrab: html."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:importlib",
+      "type": "module",
+      "name": "importlib",
+      "summary": "Python standard library module used by UniGrab: importlib."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:json",
+      "type": "module",
+      "name": "json",
+      "summary": "Python standard library module used by UniGrab: json."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:os",
+      "type": "module",
+      "name": "os",
+      "summary": "Python standard library module used by UniGrab: os."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:re",
+      "type": "module",
+      "name": "re",
+      "summary": "Python standard library module used by UniGrab: re."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:shutil",
+      "type": "module",
+      "name": "shutil",
+      "summary": "Python standard library module used by UniGrab: shutil."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:subprocess",
+      "type": "module",
+      "name": "subprocess",
+      "summary": "Python standard library module used by UniGrab: subprocess."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:sys",
+      "type": "module",
+      "name": "sys",
+      "summary": "Python standard library module used by UniGrab: sys."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:time",
+      "type": "module",
+      "name": "time",
+      "summary": "Python standard library module used by UniGrab: time."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:xml",
+      "type": "module",
+      "name": "xml",
+      "summary": "Python standard library module used by UniGrab: xml."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:dataclasses",
+      "type": "module",
+      "name": "dataclasses",
+      "summary": "Python standard library module used by UniGrab: dataclasses."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:pathlib",
+      "type": "module",
+      "name": "pathlib",
+      "summary": "Python standard library module used by UniGrab: pathlib."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:typing",
+      "type": "module",
+      "name": "typing",
+      "summary": "Python standard library module used by UniGrab: typing."
+    },
+    {
+      "tags": [
+        "stdlib",
+        "dependency"
+      ],
+      "id": "module:urllib",
+      "type": "module",
+      "name": "urllib",
+      "summary": "Python standard library module used by UniGrab: urllib."
+    },
+    {
+      "tags": [
+        "class",
+        "error-handling"
+      ],
+      "id": "class:unigrab.py:UniGrabError",
+      "type": "class",
+      "name": "UniGrabError",
+      "filePath": "unigrab.py",
+      "summary": "UniGrabError defines a domain-specific error for UniGrab control flow.",
+      "startLine": 26,
+      "endLine": 29
+    },
+    {
+      "tags": [
+        "class",
+        "error-handling"
+      ],
+      "id": "class:unigrab.py:DependencyMissingError",
+      "type": "class",
+      "name": "DependencyMissingError",
+      "filePath": "unigrab.py",
+      "summary": "DependencyMissingError defines a domain-specific error for UniGrab control flow.",
+      "startLine": 30,
+      "endLine": 33
+    },
+    {
+      "tags": [
+        "class",
+        "error-handling"
+      ],
+      "id": "class:unigrab.py:UnsupportedSourceError",
+      "type": "class",
+      "name": "UnsupportedSourceError",
+      "filePath": "unigrab.py",
+      "summary": "UnsupportedSourceError defines a domain-specific error for UniGrab control flow.",
+      "startLine": 34,
+      "endLine": 37
+    },
+    {
+      "tags": [
+        "class",
+        "error-handling"
+      ],
+      "id": "class:unigrab.py:MetadataResolutionError",
+      "type": "class",
+      "name": "MetadataResolutionError",
+      "filePath": "unigrab.py",
+      "summary": "MetadataResolutionError defines a domain-specific error for UniGrab control flow.",
+      "startLine": 38,
+      "endLine": 44
+    },
+    {
+      "tags": [
+        "class",
+        "utility"
+      ],
+      "id": "class:unigrab.py:Track",
+      "type": "class",
+      "name": "Track",
+      "filePath": "unigrab.py",
+      "summary": "Track is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 45,
+      "endLine": 75
+    },
+    {
+      "tags": [
+        "class",
+        "utility"
+      ],
+      "id": "class:unigrab.py:ResolvedSource",
+      "type": "class",
+      "name": "ResolvedSource",
+      "filePath": "unigrab.py",
+      "summary": "ResolvedSource is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 76,
+      "endLine": 104
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:is_url",
+      "type": "function",
+      "name": "is_url",
+      "filePath": "unigrab.py",
+      "summary": "is_url is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 105,
+      "endLine": 109
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:hostname",
+      "type": "function",
+      "name": "hostname",
+      "filePath": "unigrab.py",
+      "summary": "hostname is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 110,
+      "endLine": 113
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:clean_filename",
+      "type": "function",
+      "name": "clean_filename",
+      "filePath": "unigrab.py",
+      "summary": "clean_filename is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 114,
+      "endLine": 123
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:title_from_url_slug",
+      "type": "function",
+      "name": "title_from_url_slug",
+      "filePath": "unigrab.py",
+      "summary": "title_from_url_slug is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 124,
+      "endLine": 133
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:run_json_command",
+      "type": "function",
+      "name": "run_json_command",
+      "filePath": "unigrab.py",
+      "summary": "run_json_command is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 134,
+      "endLine": 154
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:http_json",
+      "type": "function",
+      "name": "http_json",
+      "filePath": "unigrab.py",
+      "summary": "http_json is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 155,
+      "endLine": 171
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:http_text",
+      "type": "function",
+      "name": "http_text",
+      "filePath": "unigrab.py",
+      "summary": "http_text is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 172,
+      "endLine": 186
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:ensure_directory",
+      "type": "function",
+      "name": "ensure_directory",
+      "filePath": "unigrab.py",
+      "summary": "ensure_directory is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 187,
+      "endLine": 193
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:yt_dlp_command",
+      "type": "function",
+      "name": "yt_dlp_command",
+      "filePath": "unigrab.py",
+      "summary": "yt_dlp_command is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 194,
+      "endLine": 202
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:bundled_ffmpeg_path",
+      "type": "function",
+      "name": "bundled_ffmpeg_path",
+      "filePath": "unigrab.py",
+      "summary": "bundled_ffmpeg_path is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 203,
+      "endLine": 225
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:python_package_status",
+      "type": "function",
+      "name": "python_package_status",
+      "filePath": "unigrab.py",
+      "summary": "python_package_status is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 226,
+      "endLine": 232
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:Resolver",
+      "type": "class",
+      "name": "Resolver",
+      "filePath": "unigrab.py",
+      "summary": "Resolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 233,
+      "endLine": 240
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:ResolverRegistry",
+      "type": "class",
+      "name": "ResolverRegistry",
+      "filePath": "unigrab.py",
+      "summary": "ResolverRegistry participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 241,
+      "endLine": 267
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:BlockedSourceResolver",
+      "type": "class",
+      "name": "BlockedSourceResolver",
+      "filePath": "unigrab.py",
+      "summary": "BlockedSourceResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 268,
+      "endLine": 277
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:QueryResolver",
+      "type": "class",
+      "name": "QueryResolver",
+      "filePath": "unigrab.py",
+      "summary": "QueryResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 278,
+      "endLine": 291
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:M3UPlaylistResolver",
+      "type": "class",
+      "name": "M3UPlaylistResolver",
+      "filePath": "unigrab.py",
+      "summary": "M3UPlaylistResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 292,
+      "endLine": 394
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:ArchiveOrgResolver",
+      "type": "class",
+      "name": "ArchiveOrgResolver",
+      "filePath": "unigrab.py",
+      "summary": "ArchiveOrgResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 395,
+      "endLine": 515
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:PodcastPlatformResolver",
+      "type": "class",
+      "name": "PodcastPlatformResolver",
+      "filePath": "unigrab.py",
+      "summary": "PodcastPlatformResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 516,
+      "endLine": 625
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:PodcastIndexUrlResolver",
+      "type": "class",
+      "name": "PodcastIndexUrlResolver",
+      "filePath": "unigrab.py",
+      "summary": "PodcastIndexUrlResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 626,
+      "endLine": 660
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:PodcastIndexClient",
+      "type": "class",
+      "name": "PodcastIndexClient",
+      "filePath": "unigrab.py",
+      "summary": "PodcastIndexClient participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 661,
+      "endLine": 846
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:PodcastFeedResolver",
+      "type": "class",
+      "name": "PodcastFeedResolver",
+      "filePath": "unigrab.py",
+      "summary": "PodcastFeedResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 847,
+      "endLine": 917
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:YtDlpMetadataResolver",
+      "type": "class",
+      "name": "YtDlpMetadataResolver",
+      "filePath": "unigrab.py",
+      "summary": "YtDlpMetadataResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 918,
+      "endLine": 1101
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:SpotifyResolver",
+      "type": "class",
+      "name": "SpotifyResolver",
+      "filePath": "unigrab.py",
+      "summary": "SpotifyResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 1102,
+      "endLine": 1393
+    },
+    {
+      "tags": [
+        "class",
+        "resolver",
+        "metadata"
+      ],
+      "id": "class:unigrab.py:AppleMusicResolver",
+      "type": "class",
+      "name": "AppleMusicResolver",
+      "filePath": "unigrab.py",
+      "summary": "AppleMusicResolver participates in source recognition, metadata resolution, or platform-specific media lookup.",
+      "startLine": 1394,
+      "endLine": 1442
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:normalize_artist_values",
+      "type": "function",
+      "name": "normalize_artist_values",
+      "filePath": "unigrab.py",
+      "summary": "normalize_artist_values is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1443,
+      "endLine": 1461
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:unique_preserving_order",
+      "type": "function",
+      "name": "unique_preserving_order",
+      "filePath": "unigrab.py",
+      "summary": "unique_preserving_order is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1462,
+      "endLine": 1472
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:normalize_match_text",
+      "type": "function",
+      "name": "normalize_match_text",
+      "filePath": "unigrab.py",
+      "summary": "normalize_match_text is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1473,
+      "endLine": 1478
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:similarity_score",
+      "type": "function",
+      "name": "similarity_score",
+      "filePath": "unigrab.py",
+      "summary": "similarity_score is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1479,
+      "endLine": 1492
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:text_or_none",
+      "type": "function",
+      "name": "text_or_none",
+      "filePath": "unigrab.py",
+      "summary": "text_or_none is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1493,
+      "endLine": 1499
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:parse_duration",
+      "type": "function",
+      "name": "parse_duration",
+      "filePath": "unigrab.py",
+      "summary": "parse_duration is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 1500,
+      "endLine": 1556
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:DownloadOptions",
+      "type": "class",
+      "name": "DownloadOptions",
+      "filePath": "unigrab.py",
+      "summary": "DownloadOptions participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 1557,
+      "endLine": 1583
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:DownloadResult",
+      "type": "class",
+      "name": "DownloadResult",
+      "filePath": "unigrab.py",
+      "summary": "DownloadResult participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 1584,
+      "endLine": 1589
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:DownloadReporter",
+      "type": "class",
+      "name": "DownloadReporter",
+      "filePath": "unigrab.py",
+      "summary": "DownloadReporter participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 1590,
+      "endLine": 1603
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:YtDlpDownloader",
+      "type": "class",
+      "name": "YtDlpDownloader",
+      "filePath": "unigrab.py",
+      "summary": "YtDlpDownloader participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 1604,
+      "endLine": 2163
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:ensure_dependencies",
+      "type": "function",
+      "name": "ensure_dependencies",
+      "filePath": "unigrab.py",
+      "summary": "ensure_dependencies implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2164,
+      "endLine": 2195
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "unigrab.py",
+      "summary": "main implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2196,
+      "endLine": 2239
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:interactive",
+      "type": "function",
+      "name": "interactive",
+      "filePath": "unigrab.py",
+      "summary": "interactive implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2240,
+      "endLine": 2274
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:prompt_mode",
+      "type": "function",
+      "name": "prompt_mode",
+      "filePath": "unigrab.py",
+      "summary": "prompt_mode implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2275,
+      "endLine": 2300
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:source_prompt_for_mode",
+      "type": "function",
+      "name": "source_prompt_for_mode",
+      "filePath": "unigrab.py",
+      "summary": "source_prompt_for_mode implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2301,
+      "endLine": 2308
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:print_interactive_metadata",
+      "type": "function",
+      "name": "print_interactive_metadata",
+      "filePath": "unigrab.py",
+      "summary": "print_interactive_metadata implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2309,
+      "endLine": 2344
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:metadata_value",
+      "type": "function",
+      "name": "metadata_value",
+      "filePath": "unigrab.py",
+      "summary": "metadata_value is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2345,
+      "endLine": 2354
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:metadata_bool",
+      "type": "function",
+      "name": "metadata_bool",
+      "filePath": "unigrab.py",
+      "summary": "metadata_bool is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2355,
+      "endLine": 2362
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:build_parser",
+      "type": "function",
+      "name": "build_parser",
+      "filePath": "unigrab.py",
+      "summary": "build_parser implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2363,
+      "endLine": 2422
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:metadata",
+      "type": "function",
+      "name": "metadata",
+      "filePath": "unigrab.py",
+      "summary": "metadata implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2423,
+      "endLine": 2436
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:download",
+      "type": "function",
+      "name": "download",
+      "filePath": "unigrab.py",
+      "summary": "download implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2437,
+      "endLine": 2464
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:media_type_from_mode",
+      "type": "function",
+      "name": "media_type_from_mode",
+      "filePath": "unigrab.py",
+      "summary": "media_type_from_mode is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2465,
+      "endLine": 2468
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:ConsoleDownloadReporter",
+      "type": "class",
+      "name": "ConsoleDownloadReporter",
+      "filePath": "unigrab.py",
+      "summary": "ConsoleDownloadReporter participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 2469,
+      "endLine": 2529
+    },
+    {
+      "tags": [
+        "class",
+        "download",
+        "progress"
+      ],
+      "id": "class:unigrab.py:ReferenceDownloadReporter",
+      "type": "class",
+      "name": "ReferenceDownloadReporter",
+      "filePath": "unigrab.py",
+      "summary": "ReferenceDownloadReporter participates in download configuration, execution, results, reporting, or progress display.",
+      "startLine": 2530,
+      "endLine": 2572
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:progress_bar",
+      "type": "function",
+      "name": "progress_bar",
+      "filePath": "unigrab.py",
+      "summary": "progress_bar is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2573,
+      "endLine": 2581
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:format_duration",
+      "type": "function",
+      "name": "format_duration",
+      "filePath": "unigrab.py",
+      "summary": "format_duration is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2582,
+      "endLine": 2592
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:doctor",
+      "type": "function",
+      "name": "doctor",
+      "filePath": "unigrab.py",
+      "summary": "doctor implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2593,
+      "endLine": 2603
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:formats",
+      "type": "function",
+      "name": "formats",
+      "filePath": "unigrab.py",
+      "summary": "formats implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2604,
+      "endLine": 2611
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:shell_join",
+      "type": "function",
+      "name": "shell_join",
+      "filePath": "unigrab.py",
+      "summary": "shell_join is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2612,
+      "endLine": 2615
+    },
+    {
+      "tags": [
+        "function",
+        "utility"
+      ],
+      "id": "function:unigrab.py:quote_arg",
+      "type": "function",
+      "name": "quote_arg",
+      "filePath": "unigrab.py",
+      "summary": "quote_arg is a utility used by UniGrab for URL handling, metadata normalization, formatting, or process execution.",
+      "startLine": 2616,
+      "endLine": 2622
+    },
+    {
+      "tags": [
+        "function",
+        "cli",
+        "command"
+      ],
+      "id": "function:unigrab.py:sources",
+      "type": "function",
+      "name": "sources",
+      "filePath": "unigrab.py",
+      "summary": "sources implements command-line parsing, interactive prompts, dependency checks, or user-facing commands.",
+      "startLine": 2623,
+      "endLine": 2663
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:unigrab.py",
+      "target": "module:imageio-ffmpeg",
+      "type": "depends_on",
+      "weight": 0.8,
+      "description": "unigrab.py depends on imageio-ffmpeg."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:mutagen",
+      "type": "depends_on",
+      "weight": 0.8,
+      "description": "unigrab.py depends on mutagen."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:yt-dlp",
+      "type": "depends_on",
+      "weight": 0.8,
+      "description": "unigrab.py depends on yt-dlp."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:__future__",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on __future__."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:argparse",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on argparse."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:base64",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on base64."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:hashlib",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on hashlib."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:html",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on html."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:importlib",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on importlib."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:json",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on json."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:os",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on os."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:re",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on re."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:shutil",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on shutil."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:subprocess",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on subprocess."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:sys",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on sys."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:time",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on time."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:xml",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on xml."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:dataclasses",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on dataclasses."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:pathlib",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on pathlib."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:typing",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on typing."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "module:urllib",
+      "type": "depends_on",
+      "weight": 0.5,
+      "description": "unigrab.py depends on urllib."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:UniGrabError",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains UniGrabError."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:DependencyMissingError",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains DependencyMissingError."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:UnsupportedSourceError",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains UnsupportedSourceError."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:MetadataResolutionError",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains MetadataResolutionError."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:Track",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains Track."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:ResolvedSource",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ResolvedSource."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:is_url",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains is_url."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:hostname",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains hostname."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:clean_filename",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains clean_filename."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:title_from_url_slug",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains title_from_url_slug."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:run_json_command",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains run_json_command."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:http_json",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains http_json."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:http_text",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains http_text."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:ensure_directory",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ensure_directory."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:yt_dlp_command",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains yt_dlp_command."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:bundled_ffmpeg_path",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains bundled_ffmpeg_path."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:python_package_status",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains python_package_status."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:Resolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains Resolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:ResolverRegistry",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ResolverRegistry."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:BlockedSourceResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains BlockedSourceResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:QueryResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains QueryResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:M3UPlaylistResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains M3UPlaylistResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:ArchiveOrgResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ArchiveOrgResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:PodcastPlatformResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains PodcastPlatformResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:PodcastIndexUrlResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains PodcastIndexUrlResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:PodcastIndexClient",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains PodcastIndexClient."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:PodcastFeedResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains PodcastFeedResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:YtDlpMetadataResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains YtDlpMetadataResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:SpotifyResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains SpotifyResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:AppleMusicResolver",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains AppleMusicResolver."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:normalize_artist_values",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains normalize_artist_values."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:unique_preserving_order",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains unique_preserving_order."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:normalize_match_text",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains normalize_match_text."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:similarity_score",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains similarity_score."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:text_or_none",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains text_or_none."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:parse_duration",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains parse_duration."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:DownloadOptions",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains DownloadOptions."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:DownloadResult",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains DownloadResult."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:DownloadReporter",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains DownloadReporter."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:YtDlpDownloader",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains YtDlpDownloader."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:ensure_dependencies",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ensure_dependencies."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:main",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains main."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:interactive",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains interactive."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:prompt_mode",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains prompt_mode."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:source_prompt_for_mode",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains source_prompt_for_mode."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:print_interactive_metadata",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains print_interactive_metadata."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:metadata_value",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains metadata_value."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:metadata_bool",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains metadata_bool."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:build_parser",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains build_parser."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:metadata",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains metadata."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:download",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains download."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:media_type_from_mode",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains media_type_from_mode."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:ConsoleDownloadReporter",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ConsoleDownloadReporter."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "class:unigrab.py:ReferenceDownloadReporter",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains ReferenceDownloadReporter."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:progress_bar",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains progress_bar."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:format_duration",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains format_duration."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:doctor",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains doctor."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:formats",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains formats."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:shell_join",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains shell_join."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:quote_arg",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains quote_arg."
+    },
+    {
+      "source": "file:unigrab.py",
+      "target": "function:unigrab.py:sources",
+      "type": "contains",
+      "weight": 1,
+      "description": "unigrab.py contains sources."
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:unigrab.py",
+      "type": "documents",
+      "weight": 0.8,
+      "description": "README usage examples and feature descriptions document the CLI implemented in unigrab.py."
+    },
+    {
+      "source": "config:requirements.txt",
+      "target": "file:unigrab.py",
+      "type": "configures",
+      "weight": 0.7,
+      "description": "requirements.txt supplies runtime packages imported or invoked by unigrab.py."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:build_parser",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls build_parser."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:interactive",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls interactive."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:download",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls download."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:metadata",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls metadata."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:doctor",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls doctor."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:formats",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls formats."
+    },
+    {
+      "source": "function:unigrab.py:main",
+      "target": "function:unigrab.py:sources",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "main calls sources."
+    },
+    {
+      "source": "function:unigrab.py:download",
+      "target": "class:unigrab.py:ResolverRegistry",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "download calls ResolverRegistry."
+    },
+    {
+      "source": "function:unigrab.py:download",
+      "target": "class:unigrab.py:YtDlpDownloader",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "download calls YtDlpDownloader."
+    },
+    {
+      "source": "function:unigrab.py:metadata",
+      "target": "class:unigrab.py:ResolverRegistry",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "metadata calls ResolverRegistry."
+    },
+    {
+      "source": "function:unigrab.py:interactive",
+      "target": "class:unigrab.py:YtDlpDownloader",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "interactive calls YtDlpDownloader."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:Resolver",
+      "type": "contains",
+      "weight": 0.6,
+      "description": "ResolverRegistry contains Resolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:BlockedSourceResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on BlockedSourceResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:M3UPlaylistResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on M3UPlaylistResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:ArchiveOrgResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on ArchiveOrgResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:PodcastPlatformResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on PodcastPlatformResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:PodcastIndexUrlResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on PodcastIndexUrlResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:PodcastFeedResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on PodcastFeedResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:YtDlpMetadataResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on YtDlpMetadataResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:SpotifyResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on SpotifyResolver."
+    },
+    {
+      "source": "class:unigrab.py:ResolverRegistry",
+      "target": "class:unigrab.py:AppleMusicResolver",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "ResolverRegistry depends on AppleMusicResolver."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "class:unigrab.py:DownloadOptions",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "YtDlpDownloader depends on DownloadOptions."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "class:unigrab.py:DownloadResult",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "YtDlpDownloader depends on DownloadResult."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "class:unigrab.py:DownloadReporter",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "YtDlpDownloader calls DownloadReporter."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "function:unigrab.py:yt_dlp_command",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "YtDlpDownloader calls yt_dlp_command."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "function:unigrab.py:bundled_ffmpeg_path",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "YtDlpDownloader calls bundled_ffmpeg_path."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "module:yt-dlp",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "YtDlpDownloader depends on yt-dlp."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "module:imageio-ffmpeg",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "YtDlpDownloader depends on imageio-ffmpeg."
+    },
+    {
+      "source": "class:unigrab.py:YtDlpDownloader",
+      "target": "module:mutagen",
+      "type": "depends_on",
+      "weight": 0.6,
+      "description": "YtDlpDownloader depends on mutagen."
+    },
+    {
+      "source": "class:unigrab.py:PodcastIndexClient",
+      "target": "function:unigrab.py:http_json",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "PodcastIndexClient calls http_json."
+    },
+    {
+      "source": "class:unigrab.py:PodcastFeedResolver",
+      "target": "function:unigrab.py:http_text",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "PodcastFeedResolver calls http_text."
+    },
+    {
+      "source": "class:unigrab.py:ArchiveOrgResolver",
+      "target": "function:unigrab.py:http_json",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "ArchiveOrgResolver calls http_json."
+    },
+    {
+      "source": "class:unigrab.py:SpotifyResolver",
+      "target": "function:unigrab.py:http_json",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "SpotifyResolver calls http_json."
+    },
+    {
+      "source": "class:unigrab.py:AppleMusicResolver",
+      "target": "function:unigrab.py:http_json",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "AppleMusicResolver calls http_json."
+    },
+    {
+      "source": "function:unigrab.py:doctor",
+      "target": "function:unigrab.py:python_package_status",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "doctor calls python_package_status."
+    },
+    {
+      "source": "function:unigrab.py:doctor",
+      "target": "function:unigrab.py:bundled_ffmpeg_path",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "doctor calls bundled_ffmpeg_path."
+    },
+    {
+      "source": "function:unigrab.py:ensure_dependencies",
+      "target": "function:unigrab.py:yt_dlp_command",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "ensure_dependencies calls yt_dlp_command."
+    },
+    {
+      "source": "function:unigrab.py:ensure_dependencies",
+      "target": "function:unigrab.py:bundled_ffmpeg_path",
+      "type": "calls",
+      "weight": 0.8,
+      "description": "ensure_dependencies calls bundled_ffmpeg_path."
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:documentation-and-configuration",
+      "name": "Documentation and Configuration",
+      "description": "Project docs and dependency declarations that explain and configure the CLI.",
+      "nodeIds": [
+        "document:README.md",
+        "config:requirements.txt"
+      ]
+    },
+    {
+      "id": "layer:application-entry-and-cli",
+      "name": "Application Entry and CLI",
+      "description": "Command parser, interactive flow, command handlers, and user-facing utility commands.",
+      "nodeIds": [
+        "file:unigrab.py",
+        "function:unigrab.py:ensure_dependencies",
+        "function:unigrab.py:main",
+        "function:unigrab.py:interactive",
+        "function:unigrab.py:prompt_mode",
+        "function:unigrab.py:source_prompt_for_mode",
+        "function:unigrab.py:print_interactive_metadata",
+        "function:unigrab.py:build_parser",
+        "function:unigrab.py:metadata",
+        "function:unigrab.py:download",
+        "function:unigrab.py:doctor",
+        "function:unigrab.py:formats",
+        "function:unigrab.py:sources"
+      ]
+    },
+    {
+      "id": "layer:source-resolution",
+      "name": "Source Resolution",
+      "description": "Resolver registry and platform/feed-specific classes that turn URLs or search text into media tracks.",
+      "nodeIds": [
+        "class:unigrab.py:Resolver",
+        "class:unigrab.py:ResolverRegistry",
+        "class:unigrab.py:BlockedSourceResolver",
+        "class:unigrab.py:QueryResolver",
+        "class:unigrab.py:M3UPlaylistResolver",
+        "class:unigrab.py:ArchiveOrgResolver",
+        "class:unigrab.py:PodcastPlatformResolver",
+        "class:unigrab.py:PodcastIndexUrlResolver",
+        "class:unigrab.py:PodcastIndexClient",
+        "class:unigrab.py:PodcastFeedResolver",
+        "class:unigrab.py:YtDlpMetadataResolver",
+        "class:unigrab.py:SpotifyResolver",
+        "class:unigrab.py:AppleMusicResolver"
+      ]
+    },
+    {
+      "id": "layer:download-execution",
+      "name": "Download Execution",
+      "description": "Download options, yt-dlp integration, FFmpeg/subtitle handling, results, and progress reporters.",
+      "nodeIds": [
+        "class:unigrab.py:DownloadOptions",
+        "class:unigrab.py:DownloadResult",
+        "class:unigrab.py:DownloadReporter",
+        "class:unigrab.py:YtDlpDownloader",
+        "class:unigrab.py:ConsoleDownloadReporter",
+        "class:unigrab.py:ReferenceDownloadReporter"
+      ]
+    },
+    {
+      "id": "layer:shared-utilities-and-dependencies",
+      "name": "Shared Utilities and Dependencies",
+      "description": "Reusable helpers, domain errors, and Python or third-party modules used across the CLI.",
+      "nodeIds": [
+        "class:unigrab.py:UniGrabError",
+        "class:unigrab.py:DependencyMissingError",
+        "class:unigrab.py:UnsupportedSourceError",
+        "class:unigrab.py:MetadataResolutionError",
+        "class:unigrab.py:Track",
+        "class:unigrab.py:ResolvedSource",
+        "function:unigrab.py:is_url",
+        "function:unigrab.py:hostname",
+        "function:unigrab.py:clean_filename",
+        "function:unigrab.py:title_from_url_slug",
+        "function:unigrab.py:run_json_command",
+        "function:unigrab.py:http_json",
+        "function:unigrab.py:http_text",
+        "function:unigrab.py:ensure_directory",
+        "function:unigrab.py:yt_dlp_command",
+        "function:unigrab.py:bundled_ffmpeg_path",
+        "function:unigrab.py:python_package_status",
+        "function:unigrab.py:normalize_artist_values",
+        "function:unigrab.py:unique_preserving_order",
+        "function:unigrab.py:normalize_match_text",
+        "function:unigrab.py:similarity_score",
+        "function:unigrab.py:text_or_none",
+        "function:unigrab.py:parse_duration",
+        "function:unigrab.py:metadata_value",
+        "function:unigrab.py:metadata_bool",
+        "function:unigrab.py:media_type_from_mode",
+        "function:unigrab.py:progress_bar",
+        "function:unigrab.py:format_duration",
+        "function:unigrab.py:shell_join",
+        "function:unigrab.py:quote_arg",
+        "module:imageio-ffmpeg",
+        "module:mutagen",
+        "module:yt-dlp",
+        "module:__future__",
+        "module:argparse",
+        "module:base64",
+        "module:hashlib",
+        "module:html",
+        "module:importlib",
+        "module:json",
+        "module:os",
+        "module:re",
+        "module:shutil",
+        "module:subprocess",
+        "module:sys",
+        "module:time",
+        "module:xml",
+        "module:dataclasses",
+        "module:pathlib",
+        "module:typing",
+        "module:urllib"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Purpose and CLI Surface",
+      "description": "Start with the README and argument parser to understand UniGrab modes, commands, and expected user workflows.",
+      "nodeIds": [
+        "document:README.md",
+        "function:unigrab.py:build_parser",
+        "function:unigrab.py:main"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Metadata and Source Resolution",
+      "description": "Follow the registry into platform-specific resolvers that normalize user input into resolved tracks and collections.",
+      "nodeIds": [
+        "class:unigrab.py:ResolverRegistry",
+        "class:unigrab.py:YtDlpMetadataResolver",
+        "class:unigrab.py:PodcastFeedResolver",
+        "class:unigrab.py:SpotifyResolver",
+        "class:unigrab.py:AppleMusicResolver"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Download Pipeline",
+      "description": "Inspect the downloader classes to see how resolved tracks become yt-dlp or API download operations with metadata, subtitles, and progress.",
+      "nodeIds": [
+        "class:unigrab.py:YtDlpDownloader",
+        "class:unigrab.py:DownloadOptions",
+        "class:unigrab.py:DownloadReporter",
+        "class:unigrab.py:ConsoleDownloadReporter"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Runtime Health and Dependencies",
+      "description": "Review dependency checks and required packages before changing download behavior or packaging.",
+      "nodeIds": [
+        "config:requirements.txt",
+        "function:unigrab.py:doctor",
+        "function:unigrab.py:ensure_dependencies",
+        "function:unigrab.py:yt_dlp_command"
+      ]
+    }
+  ]
+}

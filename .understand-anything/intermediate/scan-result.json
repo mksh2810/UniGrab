@@ -1,0 +1,58 @@
+{
+  "projectName": "UniGrab",
+  "projectDescription": "A clean Python CLI for downloading permitted music, videos, and podcasts from supported sites, media playlists, Internet Archive items, and RSS/Atom podcast feeds.",
+  "languages": [
+    "Python",
+    "Markdown"
+  ],
+  "frameworks": [
+    "argparse",
+    "yt-dlp",
+    "Podcast RSS/Atom",
+    "Internet Archive metadata API",
+    "Spotify Web API",
+    "Apple/iTunes lookup API",
+    "PodcastIndex API"
+  ],
+  "complexity": "medium",
+  "filteredByIgnore": 3,
+  "files": [
+    {
+      "path": "README.md",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "requirements.txt",
+      "sizeLines": 4,
+      "fileCategory": "config"
+    },
+    {
+      "path": "unigrab.py",
+      "sizeLines": 2663,
+      "fileCategory": "code"
+    }
+  ],
+  "importMap": {
+    "unigrab.py": [
+      "__future__",
+      "argparse",
+      "base64",
+      "hashlib",
+      "html",
+      "importlib",
+      "json",
+      "os",
+      "re",
+      "shutil",
+      "subprocess",
+      "sys",
+      "time",
+      "xml",
+      "dataclasses",
+      "pathlib",
+      "typing",
+      "urllib"
+    ]
+  }
+}
