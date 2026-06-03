@@ -252,20 +252,19 @@ class ResolverRegistry:
             YtDlpMetadataResolver(),
             QueryResolver(),
         ]
-        if media_type == "podcast":
-            default_resolvers = [
-                PodcastIndexUrlResolver(),
-                PodcastPlatformResolver(),
-                PodcastFeedResolver(),
-                PodcastQueryResolver(),
-                *default_resolvers,
-            ]
         self.resolvers = resolvers or default_resolvers
 
     def resolve(self, source: str) -> ResolvedSource:
+        last_error = None
         for resolver in self.resolvers:
             if resolver.can_resolve(source):
-                return resolver.resolve(source)
+                try:
+                    return resolver.resolve(source)
+                except UnsupportedSourceError as exc:
+                    last_error = exc
+                    continue
+        if last_error:
+            raise last_error
         raise UnsupportedSourceError(f"No resolver available for: {source}")
 
 
@@ -488,7 +487,7 @@ class ArchiveOrgResolver:
         allowed = cls.VIDEO_EXTENSIONS | cls.AUDIO_EXTENSIONS
         if media_type in {"movies", "video"}:
             preferred = cls.VIDEO_EXTENSIONS
-        elif media_type in {"audio", "music", "podcast"}:
+        elif media_type in {"audio", "music"}:
             preferred = cls.AUDIO_EXTENSIONS
         else:
             preferred = allowed
@@ -513,421 +512,6 @@ class ArchiveOrgResolver:
             f for f in files
             if Path(f.get("name", "")).suffix.lower() in allowed
         ]
-
-
-class PodcastPlatformResolver:
-    PLATFORM_HOSTS = {
-        "open.spotify.com": "Spotify",
-        "podcasts.apple.com": "Apple Podcasts",
-        "music.apple.com": "Apple Music",
-        "itunes.apple.com": "Apple/iTunes",
-        "music.amazon.com": "Amazon Music",
-        "audible.com": "Audible",
-        "pocketcasts.com": "Pocket Casts",
-    }
-
-    def can_resolve(self, source: str) -> bool:
-        return hostname(source) in self.PLATFORM_HOSTS
-
-    def resolve(self, source: str) -> ResolvedSource:
-        host = hostname(source)
-        if host in {"podcasts.apple.com", "itunes.apple.com"}:
-            return self._resolve_apple_podcast(source)
-        if host == "open.spotify.com":
-            return self._resolve_spotify_podcast(source)
-        return self._resolve_by_page_title(source, self.PLATFORM_HOSTS[host])
-
-    @staticmethod
-    def _resolve_apple_podcast(source: str) -> ResolvedSource:
-        parsed = urlparse(source)
-        episode_ids = parse_qs(parsed.query).get("i")
-        collection_match = re.search(r"/id(\d+)", parsed.path)
-        lookup_id = episode_ids[0] if episode_ids else (collection_match.group(1) if collection_match else None)
-        if not lookup_id:
-            raise UnsupportedSourceError("Apple Podcasts URL did not include a podcast or episode id.")
-
-        try:
-            data = http_json(f"https://itunes.apple.com/lookup?id={lookup_id}&entity=podcastEpisode")
-        except MetadataResolutionError:
-            metadata = YtDlpMetadataResolver._open_graph_metadata(source)
-            title = metadata.get("title") or title_from_url_slug(source)
-            if title:
-                return PodcastIndexClient.from_env().resolve_show_or_episode(title=title, episode_title=None, source=source)
-            raise
-        results = data.get("results") or []
-        episode = next((item for item in results if item.get("wrapperType") == "podcastEpisode"), None)
-        collection = next((item for item in results if item.get("wrapperType") == "track" and item.get("kind") == "podcast"), None)
-
-        if episode and episode.get("episodeUrl"):
-            track = Track(
-                title=episode.get("trackName") or episode.get("collectionName") or "Podcast episode",
-                artist=episode.get("artistName") or episode.get("collectionName"),
-                album=episode.get("collectionName"),
-                duration_seconds=round(episode["trackTimeMillis"] / 1000) if episode.get("trackTimeMillis") else None,
-                source_url=episode.get("episodeUrl"),
-                platform="podcast",
-                metadata={
-                    "description": episode.get("description") or episode.get("shortDescription"),
-                    "feed_url": episode.get("feedUrl"),
-                    "source_page": source,
-                    "artists": normalize_artist_values(episode.get("artistName") or episode.get("collectionName")),
-                },
-            )
-            return ResolvedSource(source=source, kind="podcast", platform="apple_podcasts", title=track.album or track.title, tracks=[track])
-
-        feed_url = (collection or {}).get("feedUrl") or (episode or {}).get("feedUrl")
-        if feed_url:
-            resolved = PodcastFeedResolver().resolve(feed_url)
-            resolved.source = source
-            resolved.platform = "apple_podcasts"
-            return resolved
-
-        title = (collection or episode or {}).get("collectionName") or (episode or {}).get("trackName")
-        if title:
-            return PodcastIndexClient.from_env().resolve_show_or_episode(title=title, episode_title=(episode or {}).get("trackName"), source=source)
-
-        raise UnsupportedSourceError("Could not find an Apple Podcasts RSS feed or episode audio URL.")
-
-    @staticmethod
-    def _resolve_spotify_podcast(source: str) -> ResolvedSource:
-        kind, spotify_id = SpotifyResolver._parse_url(source)
-        if kind not in {"episode", "show"}:
-            raise UnsupportedSourceError("Spotify music URLs are not valid podcast links. Choose music mode for songs/albums/playlists.")
-
-        try:
-            resolved = SpotifyResolver().resolve(source)
-        except UniGrabError:
-            metadata = SpotifyResolver._embed_metadata(kind, spotify_id) or YtDlpMetadataResolver._open_graph_metadata(source)
-            resolved = SpotifyResolver._fallback_podcast(
-                source,
-                kind,
-                spotify_id,
-                title=metadata.get("title"),
-                artist=metadata.get("artist"),
-            )
-
-        track = resolved.tracks[0] if resolved.tracks else None
-        if kind == "episode" and track:
-            show_title = track.album or track.artist or resolved.title
-        else:
-            show_title = resolved.title or (track.album if track else None) or (track.artist if track else None) or (track.title if track else None)
-        episode_title = track.title if kind == "episode" and track else None
-        if not show_title:
-            raise UnsupportedSourceError("Could not read Spotify podcast metadata. Add Spotify API credentials or use the RSS feed URL.")
-        return PodcastIndexClient.from_env().resolve_show_or_episode(title=show_title, episode_title=episode_title, source=source)
-
-    @staticmethod
-    def _resolve_by_page_title(source: str, platform: str) -> ResolvedSource:
-        metadata = YtDlpMetadataResolver._open_graph_metadata(source)
-        title = metadata.get("title") or title_from_url_slug(source)
-        if not title:
-            raise UnsupportedSourceError(f"Could not read {platform} podcast metadata. Use the podcast RSS feed URL instead.")
-        return PodcastIndexClient.from_env().resolve_show_or_episode(title=title, episode_title=None, source=source)
-
-
-class PodcastIndexUrlResolver:
-    def can_resolve(self, source: str) -> bool:
-        return hostname(source) == "podcastindex.org" and "/podcast/" in urlparse(source).path
-
-    def resolve(self, source: str) -> ResolvedSource:
-        parsed = urlparse(source)
-        feed_match = re.search(r"/podcast/(\d+)", parsed.path)
-        if not feed_match:
-            raise UnsupportedSourceError("PodcastIndex URL did not include a podcast id.")
-
-        feed_id = feed_match.group(1)
-        episode_ids = parse_qs(parsed.query).get("episode")
-        client = PodcastIndexClient.from_env()
-        if episode_ids:
-            try:
-                return client.resolve_episode_by_id(feed_id=feed_id, episode_id=episode_ids[0], source=source)
-            except UniGrabError:
-                metadata = podcastindex_page_metadata(source)
-                if metadata.get("show_title") or metadata.get("episode_title"):
-                    return client.resolve_show_or_episode(
-                        title=metadata.get("show_title") or metadata.get("episode_title") or feed_id,
-                        episode_title=metadata.get("episode_title"),
-                        source=source,
-                    )
-                raise
-        try:
-            return client.resolve_feed_by_id(feed_id=feed_id, source=source)
-        except UniGrabError:
-            metadata = podcastindex_page_metadata(source)
-            title = metadata.get("show_title") or metadata.get("episode_title")
-            if title:
-                return client.resolve_show_or_episode(title=title, episode_title=None, source=source)
-            raise
-
-
-class PodcastIndexClient:
-    BASE_URL = "https://api.podcastindex.org/api/1.0"
-
-    def __init__(self, api_key: str, api_secret: str) -> None:
-        self.api_key = api_key
-        self.api_secret = api_secret
-
-    @classmethod
-    def from_env(cls) -> "PodcastIndexClient":
-        api_key = os.environ.get("PODCASTINDEX_API_KEY")
-        api_secret = os.environ.get("PODCASTINDEX_API_SECRET")
-        if not api_key or not api_secret:
-            return cls("", "")
-        return cls(api_key, api_secret)
-
-    def resolve_show_or_episode(self, *, title: str, episode_title: str | None, source: str) -> ResolvedSource:
-        feed = self.find_feed(title)
-        feed_url = feed.get("url")
-        if not feed_url:
-            raise UnsupportedSourceError(f"PodcastIndex could not find an RSS feed for `{title}`.")
-
-        resolved = PodcastFeedResolver().resolve(feed_url)
-        resolved.source = source
-        resolved.platform = "podcastindex"
-
-        if episode_title:
-            match = self._find_episode(resolved.tracks, episode_title)
-            if match:
-                return ResolvedSource(source=source, kind="podcast", platform="podcastindex", title=resolved.title, tracks=[match])
-
-            api_match = self.find_episode(feed.get("id"), episode_title)
-            if api_match and api_match.get("enclosureUrl"):
-                track = Track(
-                    title=api_match.get("title") or episode_title,
-                    artist=resolved.title,
-                    album=resolved.title,
-                    duration_seconds=api_match.get("duration"),
-                    source_url=api_match.get("enclosureUrl"),
-                    platform="podcast",
-                    metadata={
-                        "description": api_match.get("description"),
-                        "feed_url": feed_url,
-                        "source_page": source,
-                        "artists": normalize_artist_values(resolved.title),
-                    },
-                )
-                return ResolvedSource(source=source, kind="podcast", platform="podcastindex", title=resolved.title, tracks=[track])
-
-            raise UnsupportedSourceError(f"Found `{resolved.title}`, but could not match the episode `{episode_title}` in its RSS feed.")
-
-        return resolved
-
-    def resolve_feed_by_id(self, *, feed_id: str, source: str) -> ResolvedSource:
-        feed = self.feed_by_id(feed_id)
-        feed_url = feed.get("url")
-        if not feed_url:
-            raise UnsupportedSourceError(f"PodcastIndex feed `{feed_id}` did not include an RSS feed URL.")
-        resolved = PodcastFeedResolver().resolve(feed_url)
-        resolved.source = source
-        resolved.platform = "podcastindex"
-        return resolved
-
-    def resolve_episode_by_id(self, *, feed_id: str, episode_id: str, source: str) -> ResolvedSource:
-        episode = self.episode_by_id(episode_id)
-        if episode and episode.get("enclosureUrl"):
-            feed_title = episode.get("feedTitle") or episode.get("feed_title") or "Podcast"
-            track = Track(
-                title=episode.get("title") or f"Podcast episode {episode_id}",
-                artist=feed_title,
-                album=feed_title,
-                duration_seconds=episode.get("duration"),
-                source_url=episode.get("enclosureUrl"),
-                platform="podcast",
-                metadata={
-                    "description": episode.get("description"),
-                    "feed_url": episode.get("feedUrl"),
-                    "source_page": source,
-                    "artists": normalize_artist_values(feed_title),
-                },
-            )
-            return ResolvedSource(source=source, kind="podcast", platform="podcastindex", title=feed_title, tracks=[track])
-
-        feed_resolved = self.resolve_feed_by_id(feed_id=feed_id, source=source)
-        return self._match_episode_id_from_feed(feed_resolved, episode_id, source)
-
-    def feed_by_id(self, feed_id: str) -> dict:
-        if self.api_key and self.api_secret:
-            data = self.get("/podcasts/byfeedid", {"id": str(feed_id)})
-            return data.get("feed") or {}
-
-        data = self.public_get("/lookup", {"entity": "podcast", "id": str(feed_id)})
-        feeds = self._feeds_from_public_search(data)
-        if feeds:
-            return feeds[0]
-        return {}
-
-    def episode_by_id(self, episode_id: str) -> dict | None:
-        if not self.api_key or not self.api_secret:
-            return None
-        data = self.get("/episodes/byid", {"id": str(episode_id)})
-        return data.get("episode") or data.get("item")
-
-    @staticmethod
-    def _match_episode_id_from_feed(resolved: ResolvedSource, episode_id: str, source: str) -> ResolvedSource:
-        for track in resolved.tracks:
-            metadata_ids = {
-                str(track.metadata.get("podcastindex_episode_id") or ""),
-                str(track.metadata.get("guid") or ""),
-            }
-            if str(episode_id) in metadata_ids:
-                return ResolvedSource(source=source, kind="podcast", platform="podcastindex", title=resolved.title, tracks=[track])
-        raise UnsupportedSourceError(
-            f"PodcastIndex episode `{episode_id}` needs authenticated episode lookup. "
-            "Set PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET, or use the podcast RSS feed URL."
-        )
-
-    def find_feed(self, title: str) -> dict:
-        if self.api_key and self.api_secret:
-            data = self.get("/search/byterm", {"q": title, "max": "10", "clean": "true"})
-            feeds = data.get("feeds") or []
-        else:
-            data = self.public_get("/search", {"term": title, "media": "podcast", "entity": "podcast"})
-            feeds = self._feeds_from_public_search(data)
-        if not feeds:
-            raise UnsupportedSourceError(f"PodcastIndex found no podcast feed for `{title}`.")
-        title_key = normalize_match_text(title)
-        return max(feeds, key=lambda feed: similarity_score(title_key, normalize_match_text(feed.get("title") or "")))
-
-    def find_episode(self, feed_id, episode_title: str) -> dict | None:
-        if not feed_id:
-            return None
-        data = self.get("/episodes/byfeedid", {"id": str(feed_id), "max": "1000"})
-        episodes = data.get("items") or []
-        if not episodes:
-            return None
-        title_key = normalize_match_text(episode_title)
-        return max(episodes, key=lambda item: similarity_score(title_key, normalize_match_text(item.get("title") or "")))
-
-    @staticmethod
-    def _find_episode(tracks: list[Track], episode_title: str) -> Track | None:
-        title_key = normalize_match_text(episode_title)
-        if not title_key:
-            return None
-        best = max(tracks, key=lambda track: similarity_score(title_key, normalize_match_text(track.title)), default=None)
-        if best and similarity_score(title_key, normalize_match_text(best.title)) >= 0.55:
-            return best
-        return None
-
-    def get(self, path: str, params: dict[str, str]) -> dict:
-        if not self.api_key or not self.api_secret:
-            raise DependencyMissingError(
-                "Episode-level PodcastIndex lookup needs PODCASTINDEX_API_KEY and PODCASTINDEX_API_SECRET. "
-                "Without keys, UniGrab can still try show-level RSS lookup."
-            )
-        auth_date = str(int(time.time()))
-        digest = hashlib.sha1((self.api_key + self.api_secret + auth_date).encode("utf-8")).hexdigest()
-        headers = {
-            "User-Agent": DEFAULT_USER_AGENT,
-            "X-Auth-Date": auth_date,
-            "X-Auth-Key": self.api_key,
-            "Authorization": digest,
-        }
-        return http_json(f"{self.BASE_URL}{path}?{urlencode(params)}", headers=headers)
-
-    @staticmethod
-    def public_get(path: str, params: dict[str, str]) -> dict:
-        return http_json(f"https://itunes.apple.com{path}?{urlencode(params)}")
-
-    @staticmethod
-    def _feeds_from_public_search(data: dict) -> list[dict]:
-        feeds = []
-        for item in data.get("results") or []:
-            feed_url = item.get("feedUrl") or item.get("feedURL") or item.get("url")
-            if not feed_url:
-                continue
-            feeds.append(
-                {
-                    "id": item.get("trackId") or item.get("collectionId"),
-                    "title": item.get("collectionName") or item.get("trackName"),
-                    "url": feed_url,
-                    "author": item.get("artistName"),
-                }
-            )
-        return feeds
-
-
-class PodcastFeedResolver:
-    def can_resolve(self, source: str) -> bool:
-        if not is_url(source):
-            return False
-        parsed = urlparse(source)
-        path = parsed.path.lower()
-        return path.endswith((".xml", ".rss")) or "rss" in path or "feed" in path
-
-    def resolve(self, source: str) -> ResolvedSource:
-        page = http_text(source)
-        try:
-            root = ET.fromstring(page)
-        except ET.ParseError as exc:
-            raise MetadataResolutionError(f"Podcast feed is not valid XML: {exc}") from exc
-
-        channel = root.find("channel")
-        if channel is None:
-            channel = root.find("{http://www.w3.org/2005/Atom}feed")
-        if channel is None:
-            raise MetadataResolutionError("Podcast feed did not include a channel/feed element.")
-
-        title = text_or_none(channel.find("title")) or text_or_none(channel.find("{http://www.w3.org/2005/Atom}title")) or "Podcast"
-        items = channel.findall("item")
-        tracks = [self._track_from_rss_item(item, source) for item in items]
-        if not tracks:
-            entries = channel.findall("{http://www.w3.org/2005/Atom}entry")
-            tracks = [self._track_from_atom_entry(entry, source) for entry in entries]
-
-        return ResolvedSource(source=source, kind="podcast_feed", platform="podcast", title=title, tracks=[track for track in tracks if track.source_url])
-
-    @staticmethod
-    def _track_from_rss_item(item: ET.Element, source: str) -> Track:
-        enclosure = item.find("enclosure")
-        url = enclosure.attrib.get("url") if enclosure is not None else None
-        title = text_or_none(item.find("title")) or url or "Podcast episode"
-        description = text_or_none(item.find("description"))
-        duration = text_or_none(item.find("{http://www.itunes.com/dtds/podcast-1.0.dtd}duration"))
-        author = text_or_none(item.find("{http://www.itunes.com/dtds/podcast-1.0.dtd}author")) or text_or_none(item.find("author"))
-        return Track(
-            title=html.unescape(title),
-            artist=author,
-            album=None,
-            duration_seconds=parse_duration(duration),
-            source_url=url,
-            platform="podcast",
-            metadata={"description": description, "feed_url": source, "artists": normalize_artist_values(author)},
-        )
-
-    @staticmethod
-    def _track_from_atom_entry(entry: ET.Element, source: str) -> Track:
-        url = None
-        for link in entry.findall("{http://www.w3.org/2005/Atom}link"):
-            if link.attrib.get("rel") in {"enclosure", "alternate"} and link.attrib.get("href"):
-                url = link.attrib["href"]
-                break
-        title = text_or_none(entry.find("{http://www.w3.org/2005/Atom}title")) or url or "Podcast episode"
-        author = text_or_none(entry.find("{http://www.w3.org/2005/Atom}author/{http://www.w3.org/2005/Atom}name"))
-        return Track(
-            title=html.unescape(title),
-            artist=author,
-            source_url=url,
-            platform="podcast",
-            metadata={"feed_url": source, "artists": normalize_artist_values(author)},
-        )
-
-
-class PodcastQueryResolver:
-    def can_resolve(self, source: str) -> bool:
-        return not is_url(source)
-
-    def resolve(self, source: str) -> ResolvedSource:
-        print(f"Searching PodcastIndex for: {source}")
-        client = PodcastIndexClient.from_env()
-        feed = client.find_feed(source)
-        feed_url = feed.get("url")
-        if not feed_url:
-            raise UnsupportedSourceError(f"PodcastIndex could not find an RSS feed for `{source}`.")
-        
-        resolved = PodcastFeedResolver().resolve(feed_url)
-        resolved.source = source
-        resolved.platform = "podcastindex"
-        return resolved
 
 
 class YtDlpMetadataResolver:
@@ -1171,32 +755,14 @@ class SpotifyResolver:
                 page = self._get_json(next_url, token) if next_url else None
             return ResolvedSource(source=source, kind="playlist", platform="spotify", title=playlist.get("name"), tracks=tracks)
 
-        if kind == "episode":
-            episode = self._get_json(f"https://api.spotify.com/v1/episodes/{spotify_id}?market=US", token)
-            track = self._episode(episode, source)
-            return ResolvedSource(source=source, kind="podcast", platform="spotify", title=track.album or track.title, tracks=[track])
-
-        if kind == "show":
-            show = self._get_json(f"https://api.spotify.com/v1/shows/{spotify_id}?market=US", token)
-            tracks = []
-            page = show.get("episodes", {})
-            while page:
-                for item in page.get("items", []):
-                    if item:
-                        item["show"] = show
-                        tracks.append(self._episode(item, source))
-                next_url = page.get("next")
-                page = self._get_json(next_url, token) if next_url else None
-            return ResolvedSource(source=source, kind="podcast_feed", platform="spotify", title=show.get("name"), tracks=tracks)
-
         raise UnsupportedSourceError(f"Unsupported Spotify URL kind: {kind}")
 
     @staticmethod
     def _parse_url(source: str) -> tuple[str, str]:
         parsed = urlparse(source)
-        match = re.search(r"/(track|album|playlist|episode|show)/([A-Za-z0-9]+)", parsed.path)
+        match = re.search(r"/(track|album|playlist)/([A-Za-z0-9]+)", parsed.path)
         if not match:
-            raise UnsupportedSourceError("Expected a Spotify track, album, playlist, episode, or show URL.")
+            raise UnsupportedSourceError("Expected a Spotify track, album, or playlist URL.")
         return match.group(1), match.group(2)
 
     @staticmethod
@@ -1248,41 +814,12 @@ class SpotifyResolver:
         )
 
     @staticmethod
-    def _episode(item: dict, source: str) -> Track:
-        show = item.get("show") or {}
-        publisher = show.get("publisher")
-        show_name = show.get("name")
-        return Track(
-            title=item.get("name") or "Spotify episode",
-            artist=publisher,
-            album=show_name,
-            duration_seconds=round(item["duration_ms"] / 1000) if item.get("duration_ms") else None,
-            source_url=(item.get("external_urls") or {}).get("spotify") or source,
-            platform="spotify",
-            metadata={
-                "spotify_id": item.get("id"),
-                "description": item.get("description"),
-                "release_date": item.get("release_date"),
-                "artists": normalize_artist_values(publisher),
-            },
-        )
-
-    @staticmethod
     def _resolve_without_api(source: str, kind: str, spotify_id: str) -> ResolvedSource:
         try:
             data = http_json(
                 f"https://open.spotify.com/oembed?{urlencode({'url': source})}",
             )
         except MetadataResolutionError:
-            if kind in {"episode", "show"}:
-                metadata = SpotifyResolver._embed_metadata(kind, spotify_id) or YtDlpMetadataResolver._open_graph_metadata(source)
-                return SpotifyResolver._fallback_podcast(
-                    source,
-                    kind,
-                    spotify_id,
-                    title=metadata.get("title"),
-                    artist=metadata.get("artist"),
-                )
             raise
         title = data.get("title") or "Spotify item"
         clean_title = SpotifyResolver._clean_oembed_title(title)
@@ -1303,36 +840,6 @@ class SpotifyResolver:
             )
             return ResolvedSource(source=source, kind="track", platform="spotify", title=track_title, tracks=[track])
 
-        if kind == "episode":
-            track = Track(
-                title=clean_title,
-                artist=data.get("author_name"),
-                source_url=source,
-                platform="spotify",
-                metadata={
-                    "spotify_id": spotify_id,
-                    "artists": normalize_artist_values(data.get("author_name")),
-                    "thumbnail_url": data.get("thumbnail_url"),
-                    "metadata_source": "spotify_oembed",
-                },
-            )
-            return ResolvedSource(source=source, kind="podcast", platform="spotify", title=clean_title, tracks=[track])
-
-        if kind == "show":
-            track = Track(
-                title=clean_title,
-                artist=data.get("author_name"),
-                source_url=source,
-                platform="spotify",
-                metadata={
-                    "spotify_id": spotify_id,
-                    "artists": normalize_artist_values(data.get("author_name")),
-                    "thumbnail_url": data.get("thumbnail_url"),
-                    "metadata_source": "spotify_oembed",
-                },
-            )
-            return ResolvedSource(source=source, kind="podcast_feed", platform="spotify", title=clean_title, tracks=[track])
-
         return ResolvedSource(
             source=source,
             kind=kind,
@@ -1340,65 +847,6 @@ class SpotifyResolver:
             title=clean_title,
             tracks=[],
         )
-
-    @staticmethod
-    def _fallback_podcast(source: str, kind: str, spotify_id: str, *, title: str | None = None, artist: str | None = None) -> ResolvedSource:
-        title = SpotifyResolver._clean_oembed_title(title or f"Spotify {kind} {spotify_id}")
-        track = Track(
-            title=title,
-            artist=artist,
-            source_url=source,
-            platform="spotify",
-            metadata={
-                "spotify_id": spotify_id,
-                "artists": normalize_artist_values(artist),
-                "metadata_source": "spotify_page" if title else "spotify_url",
-            },
-        )
-        resolved_kind = "podcast_feed" if kind == "show" else "podcast"
-        return ResolvedSource(source=source, kind=resolved_kind, platform="spotify", title=title, tracks=[track])
-
-    @staticmethod
-    def _embed_metadata(kind: str, spotify_id: str) -> dict[str, str]:
-        try:
-            page = http_text(
-                f"https://open.spotify.com/embed/{kind}/{spotify_id}",
-            )
-        except MetadataResolutionError:
-            return {}
-
-        if "not currently available" in page.lower():
-            return {}
-
-        match = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', page)
-        if not match:
-            return {}
-
-        try:
-            data = json.loads(html.unescape(match.group(1)))
-        except json.DecodeError:
-            return {}
-
-        strings: dict[str, str] = {}
-
-        def walk(value) -> None:
-            if isinstance(value, dict):
-                for key, item in value.items():
-                    lowered = str(key).lower()
-                    if isinstance(item, str) and item.strip():
-                        if lowered in {"name", "title"} and "title" not in strings:
-                            strings["title"] = item.strip()
-                        elif lowered in {"subtitle", "publisher", "author", "artist"} and "artist" not in strings:
-                            strings["artist"] = item.strip()
-                        elif lowered == "description" and "description" not in strings:
-                            strings["description"] = item.strip()
-                    walk(item)
-            elif isinstance(value, list):
-                for item in value:
-                    walk(item)
-
-        walk(data)
-        return strings
 
     @staticmethod
     def _clean_oembed_title(title: str) -> str:
@@ -1591,11 +1039,10 @@ class DownloadOptions:
     geo_bypass: bool = False
 
 
-SUPPORTED_MEDIA_TYPES = {"music", "podcast", "video"}
+SUPPORTED_MEDIA_TYPES = {"music", "video"}
 SUPPORTED_VIDEO_FORMATS = {"mp4", "mkv", "webm"}
 MEDIA_FOLDER_NAMES = {
     "music": "music",
-    "podcast": "podcasts",
     "video": "videos",
 }
 
@@ -1641,10 +1088,7 @@ class YtDlpDownloader:
             if not options.dry_run:
                 if reporter:
                     reporter.start_track(track, index, len(tracks))
-                if options.media_type == "podcast" and track.source_url and is_url(track.source_url):
-                    result.output_path = self._download_direct_audio(track, options, output_dir, reporter, index, len(tracks))
-                else:
-                    result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
                 self._tag_file(result.output_path, track)
                 self._burn_subtitles(result.output_path, options)
             if reporter:
@@ -1660,6 +1104,9 @@ class YtDlpDownloader:
 
         args = [
             *yt_dlp_command(required=not options.dry_run),
+            "--ignore-errors",
+            "--extractor-args",
+            "youtube:player_client=android",
             "--no-playlist",
             "--format",
             self._format_selector(options),
@@ -1673,10 +1120,10 @@ class YtDlpDownloader:
             "after_move:filepath",
         ]
 
-        if options.embed_thumbnail and options.media_type != "video":
+        if options.embed_thumbnail and options.media_type == "music":
             args.append("--embed-thumbnail")
 
-        if options.media_type in {"music", "podcast"}:
+        if options.media_type == "music":
             args.extend(
                 [
                     "--extract-audio",
@@ -1699,7 +1146,7 @@ class YtDlpDownloader:
         if options.geo_bypass:
             args.append("--geo-bypass")
         if options.media_type == "video":
-            args.extend(["--write-subs", "--write-auto-subs"])
+            args.extend(["--write-subs"])
         args.append(target)
         return args
 
@@ -1708,8 +1155,6 @@ class YtDlpDownloader:
         media_dir = options.output_dir / MEDIA_FOLDER_NAMES[options.media_type]
         if resolved.kind in {"playlist", "album"}:
             return media_dir / clean_filename(resolved.title or resolved.kind, fallback=resolved.kind)
-        if resolved.kind in {"podcast", "podcast_feed"} and resolved.title:
-            return media_dir / clean_filename(resolved.title, fallback="podcast")
         return media_dir
 
     @staticmethod
@@ -1753,20 +1198,27 @@ class YtDlpDownloader:
         total_tracks: int = 1,
     ) -> Path | None:
         try:
+            env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
             process = subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                bufsize=1,
                 encoding="utf-8",
                 errors="replace",
+                env=env,
             )
         except FileNotFoundError as exc:
             raise DependencyMissingError("Could not start the Python yt-dlp runner.") from exc
 
         output_lines: list[str] = []
         assert process.stdout is not None
-        for line in process.stdout:
+        while True:
+            line = process.stdout.readline()
+            if not line:
+                break
             line = line.strip()
             if not line:
                 continue
@@ -1776,196 +1228,18 @@ class YtDlpDownloader:
                 reporter.progress(index, total_tracks, fraction)
 
         return_code = process.wait()
-        if return_code:
-            message = "\n".join(output_lines[-20:]).strip()
-            raise UniGrabError(message or f"`yt-dlp` exited with {return_code}.")
-
+        downloaded_path = None
         for line in reversed(output_lines):
             path = Path(line)
             if path.exists():
-                return path
-        return None
-
-    @staticmethod
-    def _download_direct_audio(
-        track: Track,
-        options: DownloadOptions,
-        output_dir: Path,
-        reporter: DownloadReporter | None,
-        index: int,
-        total_tracks: int,
-    ) -> Path:
-        source = track.source_url
-        if not source:
-            raise UniGrabError("Podcast episode does not include an audio URL.")
-
-        source = YtDlpDownloader._unwrap_podcast_audio_url(source)
-        ensure_directory(output_dir)
-        source_extension = YtDlpDownloader._audio_extension_from_url(source) or options.audio_format
-        source_path = output_dir / f"{YtDlpDownloader._output_stem(track, index)}.{source_extension}"
-        curl = shutil.which("curl.exe") or shutil.which("curl")
-        if curl:
-            try:
-                YtDlpDownloader._download_direct_audio_with_curl(source, source_path, reporter, index, total_tracks)
-            except Exception:
-                # Fall back to native Python urllib download if curl fails (e.g. connection reset)
-                YtDlpDownloader._download_direct_audio_with_python(source, source_path, reporter, index, total_tracks)
-        else:
-            YtDlpDownloader._download_direct_audio_with_python(source, source_path, reporter, index, total_tracks)
-
-        if reporter:
-            reporter.progress(index, total_tracks, 1.0)
-
-        target_extension = YtDlpDownloader._output_extension(options.audio_format)
-        if source_path.suffix.lower().lstrip(".") == target_extension:
-            return source_path
-
-        target_path = source_path.with_suffix(f".{target_extension}")
-        ffmpeg_path = bundled_ffmpeg_path(required=True)
-
-        # Build quality argument for lossy formats (mp3, aac, m4a, ogg, vorbis, opus)
-        quality_args = []
-        if target_extension in {"mp3", "aac", "m4a", "ogg", "vorbis", "opus"}:
-            quality_args = ["-q:a", QUALITY_VALUES[options.quality]]
-
-        try:
-            subprocess.run(
-                [ffmpeg_path, "-y", "-i", str(source_path), "-vn", *quality_args, str(target_path)],
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError as exc:
-            message = (exc.stderr or exc.stdout or b"").decode("utf-8", errors="replace").strip()
-            raise UniGrabError(message or "Podcast audio conversion failed.") from exc
-
-        source_path.unlink(missing_ok=True)
-        return target_path
-
-    @staticmethod
-    def _download_direct_audio_with_curl(
-        source: str,
-        output_path: Path,
-        reporter: DownloadReporter | None,
-        index: int,
-        total_tracks: int,
-    ) -> None:
-        command = [
-            shutil.which("curl.exe") or shutil.which("curl") or "curl",
-            "-4",
-            "-L",
-            "--fail",
-            "--show-error",
-            "-A",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "--output",
-            str(output_path),
-            source,
-        ]
-        try:
-            process = subprocess.Popen(
-                command,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-            )
-        except FileNotFoundError as exc:
-            raise DependencyMissingError("Could not start curl for podcast download.") from exc
-
-        messages: list[str] = []
-        buffer = ""
-        assert process.stderr is not None
-        while True:
-            char = process.stderr.read(1)
-            if not char:
+                downloaded_path = path
                 break
-            if char in {"\r", "\n"}:
-                line = buffer.strip()
-                buffer = ""
-                if not line:
-                    continue
-                messages.append(line)
-                fraction = YtDlpDownloader._curl_progress_fraction(line)
-                if reporter and fraction is not None:
-                    reporter.progress(index, total_tracks, fraction)
-            else:
-                buffer += char
 
-        return_code = process.wait()
-        if return_code:
-            output_path.unlink(missing_ok=True)
-            message = "\n".join(messages[-10:]).strip()
-            raise UniGrabError(message or f"Podcast download failed with curl exit code {return_code}.")
+        if not downloaded_path:
+            message = "\n".join(output_lines[-20:]).strip()
+            raise UniGrabError(message or f"`yt-dlp` failed; no output file was created (exit code {return_code}).")
 
-    @staticmethod
-    def _unwrap_podcast_audio_url(source: str) -> str:
-        from urllib.parse import unquote
-        lower_source = source.lower()
-        for prefix in ["https%3a%2f%2f", "http%3a%2f%2f"]:
-            idx = lower_source.find(prefix)
-            if idx != -1:
-                decoded = unquote(source[idx:])
-                if is_url(decoded):
-                    return YtDlpDownloader._unwrap_podcast_audio_url(decoded)
-
-        parsed = urlparse(source)
-        wrapper_hosts = {
-            hostname(source),
-            "tracking.swap.fm",
-            "prfx.byspotify.com",
-            "play.podtrac.com",
-            "podtrac.com",
-        }
-        segments = [segment for segment in parsed.path.split("/") if segment]
-        for index, segment in enumerate(segments):
-            if "." not in segment or segment.lower() in wrapper_hosts or segment.lower().endswith((".mp3", ".m4a", ".aac", ".ogg", ".opus", ".wav")):
-                continue
-            rest = "/".join(segments[index:])
-            if re.search(r"\.(?:mp3|m4a|aac|ogg|oga|opus|wav)(?:$|/)", rest, flags=re.IGNORECASE):
-                path = "/" + "/".join(segments[index + 1:])
-                return urlunparse(("https", segment, path, "", parsed.query, ""))
-        return source
-
-    @staticmethod
-    def _download_direct_audio_with_python(
-        source: str,
-        output_path: Path,
-        reporter: DownloadReporter | None,
-        index: int,
-        total_tracks: int,
-    ) -> None:
-        request = Request(source, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"})
-        try:
-            with urlopen(request, timeout=60) as response:
-                content_length = response.headers.get("Content-Length")
-                total_bytes = int(content_length) if content_length and content_length.isdigit() else None
-                downloaded = 0
-                with output_path.open("wb") as file:
-                    while True:
-                        chunk = response.read(1024 * 256)
-                        if not chunk:
-                            break
-                        file.write(chunk)
-                        downloaded += len(chunk)
-                        if reporter and total_bytes:
-                            reporter.progress(index, total_tracks, min(downloaded / total_bytes, 1.0))
-        except Exception as exc:
-            output_path.unlink(missing_ok=True)
-            raise UniGrabError(f"Podcast download failed: {exc}") from exc
-
-    @staticmethod
-    def _audio_extension_from_url(source: str) -> str | None:
-        suffix = Path(urlparse(source).path).suffix.lower().lstrip(".")
-        if suffix == "oga":
-            return "ogg"
-        if suffix in SUPPORTED_FORMATS:
-            return suffix
-        return None
-
-    @staticmethod
-    def _output_extension(audio_format: str) -> str:
-        return {"alac": "m4a", "vorbis": "ogg"}.get(audio_format, audio_format)
+        return downloaded_path
 
     @staticmethod
     def _progress_fraction(line: str) -> float | None:
@@ -1973,16 +1247,6 @@ class YtDlpDownloader:
         if not match:
             return None
         return min(float(match.group(1)) / 100, 1.0)
-
-    @staticmethod
-    def _curl_progress_fraction(line: str) -> float | None:
-        match = re.match(r"\s*(\d{1,3})\s+", line)
-        if not match:
-            return None
-        value = int(match.group(1))
-        if value > 100:
-            return None
-        return value / 100
 
     @staticmethod
     def _normalize_track_number(resolved: ResolvedSource, track: Track, index: int) -> None:
@@ -2054,36 +1318,39 @@ class YtDlpDownloader:
         except ImportError:
             return
 
-        audio = File(output_path, easy=True)
-        if audio is None:
-            return
+        try:
+            audio = File(output_path, easy=True)
+            if audio is None:
+                return
 
-        artist_values = YtDlpDownloader._artist_values_from_track(track)
-        tags = {
-            "title": [track.title],
-            "artist": artist_values or None,
-            "album": [track.album] if track.album else None,
-            "tracknumber": [str(track.track_number)] if track.track_number else None,
-            "isrc": [track.isrc] if track.isrc else None,
-        }
+            artist_values = YtDlpDownloader._artist_values_from_track(track)
+            tags = {
+                "title": [track.title],
+                "artist": artist_values or None,
+                "album": [track.album] if track.album else None,
+                "tracknumber": [str(track.track_number)] if track.track_number else None,
+                "isrc": [track.isrc] if track.isrc else None,
+            }
 
-        changed = False
-        for key, value in tags.items():
-            if value:
-                try:
-                    audio[key] = value
-                    changed = True
-                except Exception:
-                    continue
-            elif key == "tracknumber" and key in audio:
-                try:
-                    del audio[key]
-                    changed = True
-                except Exception:
-                    continue
+            changed = False
+            for key, value in tags.items():
+                if value:
+                    try:
+                        audio[key] = value
+                        changed = True
+                    except Exception:
+                        continue
+                elif key == "tracknumber" and key in audio:
+                    try:
+                        del audio[key]
+                        changed = True
+                    except Exception:
+                        continue
 
-        if changed:
-            audio.save()
+            if changed:
+                audio.save()
+        except Exception as exc:
+            print(f"Warning: Could not tag audio file: {exc}")
 
     @staticmethod
     def _burn_subtitles(output_path: Path | None, options: DownloadOptions) -> None:
@@ -2317,8 +1584,7 @@ def prompt_mode() -> str | None:
     print("Select download type:")
     print("  1. Music")
     print("  2. Video")
-    print("  3. Podcast")
-    choice = input("Enter choice [1-3/m/v/p] : ").strip().lower()
+    choice = input("Enter choice [1-2/m/v] : ").strip().lower()
     if choice in {"q", "quit", "exit"}:
         return None
     modes = {
@@ -2328,22 +1594,18 @@ def prompt_mode() -> str | None:
         "2": "v",
         "v": "v",
         "video": "v",
-        "3": "p",
-        "p": "p",
-        "podcast": "p",
     }
     mode = modes.get(choice)
     if mode:
         return mode
-    print("Please choose 1, 2, 3, m, v, or p.\n")
+    print("Please choose 1, 2, m, or v.\n")
     return prompt_mode()
 
 
 def source_prompt_for_mode(mode: str) -> str:
     return {
-        "m": "Album/Song/Playlist URL",
+        "m": "Song/Album/Playlist URL",
         "v": "Video URL",
-        "p": "Podcast Feed/Episode URL",
     }[mode]
 
 
@@ -2354,19 +1616,11 @@ def print_interactive_metadata(resolved: ResolvedSource, media_type: str) -> Non
         title_label = {
             "music": "Song name",
             "video": "Video name",
-            "podcast": "Episode name",
         }[media_type]
         if media_type == "video":
             lines = [
                 (title_label, track.title),
                 ("Channel", track.artist),
-                ("Duration", format_duration(track.duration_seconds)),
-            ]
-        elif media_type == "podcast":
-            lines = [
-                (title_label, track.title),
-                ("Podcast", track.album or resolved.title),
-                ("Author", track.artist),
                 ("Duration", format_duration(track.duration_seconds)),
             ]
         else:
@@ -2382,7 +1636,6 @@ def print_interactive_metadata(resolved: ResolvedSource, media_type: str) -> Non
         title_label = {
             "music": "Playlist name",
             "video": "Playlist name",
-            "podcast": "Podcast name",
         }[media_type]
         lines = [
             (title_label, resolved.title or resolved.source),
@@ -2418,8 +1671,8 @@ def metadata_bool(track: Track, *keys: str) -> str | None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="unigrab",
-        description="UniGrab downloads music, videos, and podcasts.",
-        epilog="Modes: m=music, v=video, p=podcast",
+        description="UniGrab downloads music and videos.",
+        epilog="Modes: m=music, v=video",
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -2429,10 +1682,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     download_parser = subparsers.add_parser(
         "download",
-        help="Download music, video, or podcast media.",
+        help="Download music or video media.",
     )
-    download_parser.add_argument("mode", choices=["m", "v", "p"], help="What to download: m=music, v=video, p=podcast.")
-    download_parser.add_argument("source", help="URL, feed URL, playlist URL, or search text.")
+    download_parser.add_argument("mode", choices=["m", "v"], help="What to download: m=music, v=video.")
+    download_parser.add_argument("source", help="URL, playlist URL, or search text.")
     download_parser.add_argument("--format", default="mp3", choices=sorted(SUPPORTED_FORMATS), help="Output audio format.")
     download_parser.add_argument("--video-format", default="mp4", choices=sorted(SUPPORTED_VIDEO_FORMATS), help="Output video container.")
     download_parser.add_argument("--quality", default="best", choices=list(QUALITY_VALUES), help="Audio conversion quality.")
@@ -2495,7 +1748,7 @@ def download(args: argparse.Namespace) -> int:
 
 
 def media_type_from_mode(mode: str) -> str:
-    return {"m": "music", "v": "video", "p": "podcast"}[mode]
+    return {"m": "music", "v": "video"}[mode]
 
 class ConsoleDownloadReporter:
     def __init__(self, options: DownloadOptions) -> None:
@@ -2505,8 +1758,6 @@ class ConsoleDownloadReporter:
     def start_collection(self, resolved: ResolvedSource, output_dir: Path, total_tracks: int) -> None:
         if self.options.media_type == "video":
             label = "Video playlist" if total_tracks > 1 else "Video"
-        elif self.options.media_type == "podcast":
-            label = "Podcast feed" if total_tracks > 1 else "Podcast"
         else:
             label = "Playlist" if total_tracks > 1 else "Song"
         print(f"{label}: {resolved.title or resolved.source}")
@@ -2564,7 +1815,7 @@ class ReferenceDownloadReporter:
         self.last_line_length = 0
 
     def start_collection(self, resolved: ResolvedSource, output_dir: Path, total_tracks: int) -> None:
-        if self.options.media_type in {"music", "podcast"} and self.options.embed_thumbnail:
+        if self.options.media_type == "music" and self.options.embed_thumbnail:
             print("Downloading the cover...")
             print()
 
@@ -2590,7 +1841,7 @@ class ReferenceDownloadReporter:
     def finish_track(self, result: DownloadResult, index: int, total_tracks: int) -> None:
         self.progress(index, total_tracks, 1.0)
         print()
-        if self.options.media_type in {"music", "podcast"}:
+        if self.options.media_type == "music":
             print("Tagging metadata...")
         print("Done.")
 
@@ -2657,11 +1908,10 @@ def sources() -> int:
     print("=" * 50)
     print()
     print("Built-in Resolvers:")
-    print("  - Spotify          (tracks, albums, playlists, podcasts)")
+    print("  - Spotify          (tracks, albums, playlists)")
     print("  - Apple Music      (tracks via iTunes API)")
     print("  - Internet Archive (archive.org public domain media)")
     print("  - M3U/M3U8         (IPTV playlists, HLS streams, local files)")
-    print("  - Podcast Feeds    (RSS/Atom feeds, Apple Podcasts, Podcast Index)")
     print()
 
     try:
