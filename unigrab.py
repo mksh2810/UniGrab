@@ -1858,12 +1858,16 @@ class ConsoleDownloadReporter:
         self.progress(index, total_tracks, 0.0)
 
     def progress(self, index: int, total_tracks: int, fraction: float | None) -> None:
-        current = progress_bar(fraction)
+        columns = shutil.get_terminal_size().columns
         if total_tracks > 1:
+            bar_width = max(10, min(100, (columns - 33) // 2))
+            current = progress_bar(fraction, width=bar_width)
             current_fraction = fraction or 0.0
             overall_fraction = ((index - 1) + current_fraction) / total_tracks
-            line = f"Current {current}  Overall {progress_bar(overall_fraction)}"
+            line = f"Current {current}  Overall {progress_bar(overall_fraction, width=bar_width)}"
         else:
+            bar_width = max(10, min(100, columns - 16))
+            current = progress_bar(fraction, width=bar_width)
             line = f"Current {current}"
         self._rewrite_line(line)
 
@@ -1906,12 +1910,16 @@ class ReferenceDownloadReporter:
         self.progress(index, total_tracks, 0.0)
 
     def progress(self, index: int, total_tracks: int, fraction: float | None) -> None:
-        current = progress_bar(fraction)
+        columns = shutil.get_terminal_size().columns
         if total_tracks > 1:
+            bar_width = max(10, min(100, (columns - 35) // 2))
+            current = progress_bar(fraction, width=bar_width)
             current_fraction = fraction or 0.0
             overall_fraction = ((index - 1) + current_fraction) / total_tracks
-            line = f"  Current {current}  Overall {progress_bar(overall_fraction)}"
+            line = f"  Current {current}  Overall {progress_bar(overall_fraction, width=bar_width)}"
         else:
+            bar_width = max(10, min(100, columns - 18))
+            current = progress_bar(fraction, width=bar_width)
             line = f"  Current {current}"
         self._rewrite_line(line)
 
