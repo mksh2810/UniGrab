@@ -158,6 +158,60 @@ def hostname(value: str) -> str:
     return (urlparse(value).hostname or "").lower().removeprefix("www.")
 
 
+def clean_url(url: str) -> str:
+    if not is_url(url):
+        return url
+
+    try:
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower().removeprefix("www.")
+
+        # Parse query parameters
+        query_params = parse_qsl(parsed.query, keep_blank_values=True)
+
+        # Define parameters we want to keep based on the domain
+        keep_params = set()
+
+        if host in {"youtube.com", "music.youtube.com"}:
+            keep_params = {"v", "list", "t"}
+        elif host == "youtu.be":
+            keep_params = {"t"}
+        elif host in {"apple.com", "music.apple.com", "itunes.apple.com"}:
+            keep_params = {"i"}
+        elif host == "jiosaavn.com":
+            # JioSaavn URLs don't need any query parameters
+            keep_params = set()
+        elif host == "open.spotify.com":
+            # Spotify URLs don't need any query parameters
+            keep_params = set()
+        else:
+            # For other hosts, keep all parameters except standard tracking/referral ones
+            block_tracking = {
+                "utm_source", "utm_medium", "utm_campaign", "utm_term",
+                "utm_content", "si", "feature", "gclid", "fbclid",
+                "referral", "shareid", "sp_cid", "nd"
+            }
+            filtered_params = [
+                (k, v) for k, v in query_params
+                if k.lower() not in block_tracking
+            ]
+            new_query = urlencode(filtered_params)
+            return urlunparse(parsed._replace(query=new_query, fragment=""))
+
+        # Filter the query params for known platforms
+        filtered_params = [
+            (k, v) for k, v in query_params
+            if k in keep_params
+        ]
+
+        new_query = urlencode(filtered_params)
+        # Also clean fragments (like #...) which might contain referral tracking
+        return urlunparse(parsed._replace(query=new_query, fragment=""))
+    except Exception:
+        # If any parsing fails, return the original URL fallback
+        return url
+
+
 def clean_filename(value: str, fallback: str = "download") -> str:
     cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', " ", value)
     cleaned = re.sub(r"\s+", " ", cleaned).strip(" .")
@@ -298,6 +352,7 @@ class ResolverRegistry:
         self.resolvers = resolvers or default_resolvers
 
     def resolve(self, source: str) -> ResolvedSource:
+        source = clean_url(source)
         last_error = None
         for resolver in self.resolvers:
             if resolver.can_resolve(source):
