@@ -158,6 +158,107 @@ def hostname(value: str) -> str:
     return (urlparse(value).hostname or "").lower().removeprefix("www.")
 
 
+ADULT_KEYWORDS = {
+    "pornhub", "xvideos", "xnxx", "xhamster", "redtube", "youporn", "tube8",
+    "spankbang", "eporner", "tnaflix", "porntrex", "hqporner", "txxx",
+    "drtuber", "pornone", "youjizz", "motherless", "4tube", "beeg",
+    "alohatube", "thumbzilla", "fapello", "coomer", "rule34", "nhentai",
+    "hanime", "hentaihaven"
+}
+
+def is_adult_site(source: str) -> bool:
+    if not is_url(source):
+        return False
+    host = hostname(source)
+    for keyword in ADULT_KEYWORDS:
+        if keyword in host:
+            return True
+    return False
+
+def ensure_prebuilt_cookies(source_url: str | None = None) -> str:
+    path = Path("cookies.txt")
+    existing_lines = []
+    if path.exists():
+        try:
+            existing_lines = path.read_text(encoding="utf-8").splitlines()
+        except Exception:
+            pass
+    existing_domains = set()
+    for line in existing_lines:
+        line = line.strip()
+        if line and not line.startswith('#'):
+            parts = line.split('\t')
+            if parts:
+                existing_domains.add(parts[0])
+    new_cookies = []
+    base_cookies = [
+        (".pornhub.com", "age_verified", "1"),
+        (".pornhub.org", "age_verified", "1"),
+        (".pornhub.net", "age_verified", "1"),
+        (".xvideos.com", "verified", "1"),
+        (".xvideos.net", "verified", "1"),
+        (".xnxx.com", "verified", "1"),
+        (".xnxx.net", "verified", "1"),
+        (".xhamster.com", "age_verified", "1"),
+        (".xhamster.one", "age_verified", "1"),
+        (".redtube.com", "age_verified", "1"),
+        (".youporn.com", "age_verified", "1"),
+    ]
+    for domain, name, val in base_cookies:
+        if domain not in existing_domains:
+            new_cookies.append(f"{domain}\tTRUE\t/\tFALSE\t2000000000\t{name}\t{val}")
+            existing_domains.add(domain)
+    if source_url and is_url(source_url):
+        host = hostname(source_url)
+        for keyword in ADULT_KEYWORDS:
+            if keyword in host:
+                cookie_name = "age_verified"
+                cookie_val = "1"
+                if keyword in ("xvideos", "xnxx"):
+                    cookie_name = "verified"
+                domain_to_add = f".{host}" if not host.startswith('.') else host
+                if domain_to_add not in existing_domains:
+                    new_cookies.append(f"{domain_to_add}\tTRUE\t/\tFALSE\t2000000000\t{cookie_name}\t{cookie_val}")
+                    existing_domains.add(domain_to_add)
+                break
+    if new_cookies or not path.exists():
+        content = []
+        if not path.exists():
+            content.extend([
+                "# Netscape HTTP Cookie File",
+                "# This file is generated automatically by UniGrab.",
+                "",
+            ])
+            content.extend(new_cookies)
+        else:
+            content.extend(existing_lines)
+            content.extend(new_cookies)
+        path.write_text("\n".join(content) + "\n", encoding="utf-8")
+    return str(path.resolve())
+
+def get_cookies_file(specified_cookies: str | None = None, source_url: str | None = None) -> str | None:
+    if specified_cookies:
+        return specified_cookies
+    env_cookies = os.environ.get("UNIGRAB_COOKIES")
+    if env_cookies:
+        return env_cookies
+    try:
+        return ensure_prebuilt_cookies(source_url)
+    except Exception:
+        return None
+
+def needs_age_verification(resolved: ResolvedSource, source: str) -> bool:
+    if is_adult_site(source):
+        return True
+    for track in resolved.tracks:
+        age_limit = track.metadata.get("age_limit")
+        if age_limit is not None and isinstance(age_limit, (int, float)) and age_limit >= 18:
+            return True
+    return False
+
+
+
+
 def clean_url(url: str) -> str:
     if not is_url(url):
         return url
@@ -334,8 +435,182 @@ class Resolver(Protocol):
     def can_resolve(self, source: str) -> bool:
         ...
 
-    def resolve(self, source: str) -> ResolvedSource:
+    def resolve(self, source: str, proxy: str | None = None, cookies: str | None = None) -> ResolvedSource:
         ...
+
+
+class AutoProxyResolver:
+    """Automatically fetches, tests, and caches a working SOCKS5/HTTP proxy."""
+    _working_proxy: str | None = None
+    _failed_proxies: set[str] = set()
+    _target_host: str | None = None
+
+    PROXY_LIST_URLS = [
+        ("socks5", "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=US"),
+        ("http", "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=US"),
+        ("socks5", "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt"),
+        ("socks5", "https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/protocols/socks5/data.txt"),
+        ("socks4", "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt"),
+        ("http", "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt"),
+    ]
+
+    @classmethod
+    def get_proxy(cls, target_url: str | None = None, force_refresh: bool = False) -> str | None:
+        if cls._working_proxy and not force_refresh:
+            return cls._working_proxy
+        target_host = None
+        if target_url:
+            try:
+                target_host = urlparse(target_url).hostname
+            except Exception:
+                pass
+        cls._target_host = target_host
+
+        print("[AutoProxy] Searching for a working proxy (with real HTTPS verification)...")
+        usa_candidates = []
+        global_candidates = []
+        for protocol, url in cls.PROXY_LIST_URLS:
+            fetched = cls._fetch_list(url, protocol)
+            if "country=US" in url:
+                usa_candidates.extend(fetched)
+            else:
+                global_candidates.extend(fetched)
+            if len(usa_candidates) + len(global_candidates) >= 400:
+                break
+        if not usa_candidates and not global_candidates:
+            print("[AutoProxy] Could not fetch any proxy lists.")
+            return None
+
+        import random
+        random.shuffle(usa_candidates)
+        random.shuffle(global_candidates)
+        all_candidates = usa_candidates + global_candidates
+
+        MAX_WAVES = 3
+        WAVE_SIZE = 30
+        for wave_idx in range(MAX_WAVES):
+            start = wave_idx * WAVE_SIZE
+            batch = all_candidates[start:start + WAVE_SIZE]
+            if not batch:
+                break
+            print(f"[AutoProxy] Wave {wave_idx + 1}/{MAX_WAVES}: testing {len(batch)} proxies against {target_host or 'httpbin.org'}...")
+            winner = cls._test_batch(batch, target_url)
+            if winner:
+                print(f"[AutoProxy] ✓ Verified working proxy: {winner}")
+                cls._working_proxy = winner
+                return winner
+            for proto, addr in batch:
+                cls._failed_proxies.add(f"{proto}://{addr}")
+        print("[AutoProxy] ✗ Could not find a working proxy after testing all waves.")
+        return None
+
+    @classmethod
+    def _fetch_list(cls, url: str, protocol: str) -> list[tuple[str, str]]:
+        results = []
+        try:
+            req = Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'})
+            with urlopen(req, timeout=8) as resp:
+                content = resp.read().decode('utf-8', errors='ignore')
+                for line in content.splitlines():
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue
+                    if ':' in line:
+                        parts = line.split(':')
+                        if len(parts) == 2 and parts[1].isdigit():
+                            proxy_id = f"{protocol}://{line}"
+                            if proxy_id not in cls._failed_proxies:
+                                results.append((protocol, line))
+        except Exception as e:
+            print(f"[AutoProxy]   Skipped {url.split('/')[-1]}: {e}")
+        return results
+
+    @classmethod
+    def _test_batch(cls, batch: list[tuple[str, str]], target_url: str | None) -> str | None:
+        import concurrent.futures
+        test_url = target_url if target_url else "https://httpbin.org/ip"
+
+        def _socks_handshake_ok(addr: str, protocol: str) -> bool:
+            ip, port_str = addr.split(':')
+            port = int(port_str)
+            try:
+                sock = socket.create_connection((ip, port), timeout=3)
+                try:
+                    if protocol == "socks5":
+                        sock.sendall(b'\x05\x01\x00')
+                        resp = sock.recv(2)
+                        return len(resp) == 2 and resp[0] == 0x05
+                    elif protocol == "socks4":
+                        sock.sendall(b'\x04\x01\x00\x50\x00\x00\x00\x01\x00')
+                        resp = sock.recv(8)
+                        return len(resp) >= 2 and resp[0] == 0x00
+                    else:
+                        return True
+                finally:
+                    sock.close()
+            except Exception:
+                return False
+
+        def verify_proxy(item: tuple[str, str]) -> str | None:
+            protocol, addr = item
+            proxy_url = f"{protocol}://{addr}"
+            if protocol in ("socks5", "socks4"):
+                if not _socks_handshake_ok(addr, protocol):
+                    return None
+            cookies_file = get_cookies_file(source_url=test_url)
+            cmd = [
+                *yt_dlp_command(),
+                "--dump-single-json",
+                "--no-warnings",
+                "--socket-timeout", "12",
+                "--retries", "0",
+                "--no-check-certificates",
+                "--legacy-server-connect",
+                "--proxy", proxy_url,
+            ]
+            if cookies_file:
+                cmd.extend(["--cookies", cookies_file])
+            cmd.append(test_url)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, timeout=18, errors="replace")
+                if result.returncode == 0:
+                    return proxy_url
+                stderr_lower = (result.stderr or "").lower()
+                stdout_lower = (result.stdout or "").lower()
+                combined = stderr_lower + stdout_lower
+                if target_url and target_url == test_url:
+                    return None
+                if "unsupported url" in combined or "no video" in combined:
+                    return proxy_url
+                BAD_PROXY_TERMS = [
+                    "timed out", "timeout", "connection aborted", "connection reset",
+                    "transport error", "10054", "refused", "proxyerror", "proxy error",
+                    "socks5 response", "socks4", "curl", "unreachable",
+                    "unable to download webpage",
+                ]
+                if any(t in combined for t in BAD_PROXY_TERMS):
+                    return None
+                return proxy_url
+            except (subprocess.TimeoutExpired, Exception):
+                return None
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(verify_proxy, item): item for item in batch}
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+                if result:
+                    for f in futures:
+                        f.cancel()
+                    return result
+        return None
+
+    @classmethod
+    def invalidate_proxy(cls) -> None:
+        if cls._working_proxy:
+            print(f"[AutoProxy] Invalidating proxy: {cls._working_proxy}")
+            cls._failed_proxies.add(cls._working_proxy)
+            cls._working_proxy = None
+
 
 
 class ResolverRegistry:
@@ -351,13 +626,20 @@ class ResolverRegistry:
         ]
         self.resolvers = resolvers or default_resolvers
 
-    def resolve(self, source: str) -> ResolvedSource:
+    def resolve(self, source: str, proxy: str | None = None, cookies: str | None = None) -> ResolvedSource:
         source = clean_url(source)
         last_error = None
         for resolver in self.resolvers:
             if resolver.can_resolve(source):
                 try:
-                    return resolver.resolve(source)
+                    import inspect
+                    sig = inspect.signature(resolver.resolve)
+                    kwargs = {}
+                    if "proxy" in sig.parameters:
+                        kwargs["proxy"] = proxy
+                    if "cookies" in sig.parameters:
+                        kwargs["cookies"] = cookies
+                    return resolver.resolve(source, **kwargs)
                 except UnsupportedSourceError as exc:
                     last_error = exc
                     continue
@@ -627,15 +909,71 @@ class YtDlpMetadataResolver:
     def can_resolve(self, source: str) -> bool:
         return is_url(source) and not SpotifyResolver.is_spotify(source) and not AppleMusicResolver.is_apple(source)
 
-    def resolve(self, source: str) -> ResolvedSource:
+    def resolve(self, source: str, proxy: str | None = None, cookies: str | None = None) -> ResolvedSource:
         metadata_source = self._single_video_url(source) if self._is_youtube_single(source) else source
         playlist_args = ["--flat-playlist"] if self._is_explicit_playlist(source) else ["--no-playlist"]
+        
+        host = hostname(metadata_source)
+        if host in self.DIRECT_HOST_HINTS:
+            retries = "5"
+            extractor_retries = "3"
+            timeout = "15"
+        else:
+            retries = "2"
+            extractor_retries = "1"
+            timeout = "8"
+
+        auto_proxy_active = False
+        current_proxy = proxy
+
+        def run_resolve(prx):
+            resolve_args = [
+                *yt_dlp_command(),
+                "--dump-single-json",
+                *playlist_args,
+                "--no-warnings",
+                "--retries", retries,
+                "--extractor-retries", extractor_retries,
+                "--socket-timeout", timeout,
+                "--no-check-certificates",
+                "--legacy-server-connect",
+                "--force-ipv4",
+                "--impersonate", "chrome",
+                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+                "--referer", "https://www.google.com/",
+            ]
+            if prx:
+                resolve_args.extend(["--proxy", prx])
+            if cookies:
+                if cookies.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
+                    resolve_args.extend(["--cookies-from-browser", cookies.lower()])
+                else:
+                    resolve_args.extend(["--cookies", cookies])
+            resolve_args.append(metadata_source)
+            return run_json_command(resolve_args)
+
         try:
-            info = run_json_command([*yt_dlp_command(), "--dump-single-json", *playlist_args, "--no-warnings", metadata_source])
-        except DependencyMissingError:
-            return self._fallback_resolved_source(metadata_source)
-        except MetadataResolutionError:
-            return self._fallback_resolved_source(metadata_source)
+            info = run_resolve(current_proxy)
+        except Exception as exc:
+            err_msg = str(exc).lower()
+            is_conn_error = any(term in err_msg for term in ["10054", "connection aborted", "connection reset", "transport error", "timed out", "timeout", "remote end closed connection", "recv failure"])
+            
+            if is_conn_error and not proxy:
+                print(f"[AutoProxy] Connection error detected ({exc}). Retrying with automatic proxy...")
+                if auto_proxy_active:
+                    AutoProxyResolver.invalidate_proxy()
+                try:
+                    current_proxy = AutoProxyResolver.get_proxy(target_url=metadata_source, force_refresh=True)
+                    if current_proxy:
+                        info = run_resolve(current_proxy)
+                    else:
+                        return self._fallback_resolved_source(metadata_source)
+                except Exception as retry_exc:
+                    print(f"[AutoProxy] Retry with automatic proxy failed: {retry_exc}")
+                    return self._fallback_resolved_source(metadata_source)
+            else:
+                return self._fallback_resolved_source(metadata_source)
+
         entries = info.get("entries")
         if entries:
             tracks = [self._track_from_yt_info(entry, metadata_source) for entry in entries if entry]
@@ -1135,6 +1473,8 @@ class DownloadOptions:
     fragment_threads: int = 4
     cookies_file: str | None = None
     geo_bypass: bool = False
+    subtitles: bool = False
+    proxy: str | None = None
 
 
 SUPPORTED_MEDIA_TYPES = {"music", "video"}
@@ -1169,6 +1509,11 @@ class DownloadReporter(Protocol):
 class YtDlpDownloader:
     def download(self, resolved: ResolvedSource, options: DownloadOptions, reporter: DownloadReporter | None = None) -> list[DownloadResult]:
         self._validate_options(options)
+        # Auto-inherit the working proxy from the metadata resolution phase
+        # if the caller didn't explicitly specify one.
+        if not options.proxy and AutoProxyResolver._working_proxy:
+            options.proxy = AutoProxyResolver._working_proxy
+            print(f"[Download] Using auto-resolved proxy: {options.proxy}")
         output_dir = self.output_dir_for(resolved, options)
         if not options.dry_run:
             ensure_directory(output_dir)
@@ -1186,7 +1531,29 @@ class YtDlpDownloader:
             if not options.dry_run:
                 if reporter:
                     reporter.start_track(track, index, len(tracks))
-                result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                try:
+                    result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                except UniGrabError as dl_exc:
+                    # If the download failed with a connection error and we have
+                    # no explicit proxy yet, try once with AutoProxyResolver.
+                    err_lower = str(dl_exc).lower()
+                    conn_terms = ["10054", "connection aborted", "connection reset",
+                                  "transport error", "timed out", "timeout",
+                                  "recv failure", "remote end closed"]
+                    if any(t in err_lower for t in conn_terms) and not options.proxy:
+                        print(f"[Download] Connection error, retrying track with auto-proxy...")
+                        auto_proxy = AutoProxyResolver.get_proxy(
+                            target_url=track.source_url, force_refresh=True
+                        )
+                        if auto_proxy:
+                            options.proxy = auto_proxy
+                            command = self.build_command(track, options, index=index, output_dir=output_dir)
+                            result.command = command
+                            result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                        else:
+                            raise
+                    else:
+                        raise
                 self._tag_file(result.output_path, track)
                 if options.media_type == "video":
                     self._download_subtitles(track, options, output_dir, index)
@@ -1219,7 +1586,21 @@ class YtDlpDownloader:
             "--newline",
             "--print",
             "after_move:filepath",
+            # Connection robustness flags — match what the metadata resolver uses
+            "--no-check-certificates",
+            "--legacy-server-connect",
+            "--force-ipv4",
+            "--impersonate", "chrome",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            "--referer", "https://www.google.com/",
+            "--retries", "5",
+            "--fragment-retries", "5",
+            "--socket-timeout", "30",
         ]
+
+        # Proxy support — use the proxy that worked during metadata resolution
+        if options.proxy:
+            args.extend(["--proxy", options.proxy])
 
         if options.embed_thumbnail and options.media_type == "music":
             args.append("--embed-thumbnail")
@@ -1296,6 +1677,32 @@ class YtDlpDownloader:
         index: int = 1,
         total_tracks: int = 1,
     ) -> Path | None:
+        downloaded_path = YtDlpDownloader._exec_command(command, reporter=reporter, index=index, total_tracks=total_tracks)
+
+        # Detect m3u8/HLS manifests masquerading as video files.
+        # Some sites (e.g. pornhat.one) serve HLS playlists from URLs that
+        # look like direct .mp4 downloads.  yt-dlp's generic extractor saves
+        # the playlist text verbatim, producing a tiny file that isn't playable.
+        if downloaded_path and downloaded_path.exists():
+            hls_url = YtDlpDownloader._extract_hls_url_if_manifest(downloaded_path)
+            if hls_url:
+                print(f"[Download] Detected HLS manifest disguised as video — re-downloading from stream...")
+                downloaded_path.unlink(missing_ok=True)
+                # Rebuild the command replacing the original URL with the HLS URL
+                hls_command = YtDlpDownloader._replace_target_url(command, hls_url)
+                downloaded_path = YtDlpDownloader._exec_command(hls_command, reporter=reporter, index=index, total_tracks=total_tracks)
+
+        return downloaded_path
+
+    @staticmethod
+    def _exec_command(
+        command: list[str],
+        *,
+        reporter: DownloadReporter | None = None,
+        index: int = 1,
+        total_tracks: int = 1,
+    ) -> Path | None:
+        """Run a yt-dlp command and return the path of the downloaded file."""
         try:
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
@@ -1339,6 +1746,37 @@ class YtDlpDownloader:
             raise UniGrabError(message or f"`yt-dlp` failed; no output file was created (exit code {return_code}).")
 
         return downloaded_path
+
+    @staticmethod
+    def _extract_hls_url_if_manifest(path: Path, max_manifest_bytes: int = 8192) -> str | None:
+        """If *path* is a small file whose content is an HLS/m3u8 manifest,
+        return the master playlist URL (the redirect target).  Otherwise None."""
+        try:
+            size = path.stat().st_size
+            if size > max_manifest_bytes or size == 0:
+                return None
+            with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                head = f.read(max_manifest_bytes)
+            if not head.lstrip().startswith("#EXTM3U"):
+                return None
+            # The file is an m3u8 manifest. Find the first https:// URL in it
+            # — that's the real stream URL we need to re-download.
+            for line in head.splitlines():
+                line = line.strip()
+                if line.startswith("http"):
+                    return line
+            return None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _replace_target_url(command: list[str], new_url: str) -> list[str]:
+        """Return a copy of *command* with the trailing URL argument replaced."""
+        new_cmd = list(command)
+        # The target URL is always the last argument
+        if new_cmd:
+            new_cmd[-1] = new_url
+        return new_cmd
 
     @staticmethod
     def _progress_fraction(line: str) -> float | None:
@@ -1831,6 +2269,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     download_parser.add_argument("--cookies", default=None, help="Path to cookies.txt file (Netscape format) for authenticated downloads.")
     download_parser.add_argument("--geo-bypass", action="store_true", help="Bypass geographic restrictions on content.")
+    download_parser.add_argument("--proxy", default=None, help="Proxy URL for download (e.g. socks5://host:port or http://host:port).")
 
     subparsers.add_parser("doctor", help="Check required runtime components.")
     subparsers.add_parser("formats", help="List supported output formats and quality levels.")
@@ -1870,6 +2309,7 @@ def download(args: argparse.Namespace) -> int:
         fragment_threads=args.threads,
         cookies_file=cookies,
         geo_bypass=args.geo_bypass,
+        proxy=getattr(args, "proxy", None),
     )
     reporter = None if args.dry_run else ConsoleDownloadReporter(options)
     results = YtDlpDownloader().download(resolved, options, reporter=reporter)

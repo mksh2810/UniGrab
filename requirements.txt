@@ -1,3 +1,4 @@
+flask
 imageio-ffmpeg
 mutagen
 yt-dlp
