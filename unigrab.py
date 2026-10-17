@@ -591,7 +591,10 @@ class AutoProxyResolver:
                 "--proxy", proxy_url,
             ]
             if cookies_file:
-                cmd.extend(["--cookies", cookies_file])
+                if cookies_file.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
+                    cmd.extend(["--cookies-from-browser", cookies_file.lower()])
+                else:
+                    cmd.extend(["--cookies", cookies_file])
             cmd.append(test_url)
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=18, errors="replace")
@@ -995,7 +998,8 @@ class YtDlpMetadataResolver:
                 "10054", "104", "111", "connection reset", "connection aborted", 
                 "connection refused", "transport error", "timed out", "timeout", 
                 "remote end closed", "recv failure", "errno", "403", "forbidden", 
-                "unable to download webpage", "http error"
+                "unable to download webpage", "http error",
+                "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", "confirm you’re not a bot", "captcha"
             ])
             
             if is_conn_error and not proxy:
@@ -1100,13 +1104,16 @@ class YtDlpMetadataResolver:
             if vid:
                 thumbnail = f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
 
-        duration_val = metadata.get("duration")
         duration_sec = None
-        if duration_val:
-            try:
-                duration_sec = int(round(float(duration_val)))
-            except (ValueError, TypeError):
-                duration_sec = None
+        if cls._is_youtube_host(source):
+            duration_sec = cls._youtube_html_duration(source)
+        if duration_sec is None:
+            duration_val = metadata.get("duration")
+            if duration_val:
+                try:
+                    duration_sec = int(round(float(duration_val)))
+                except (ValueError, TypeError):
+                    duration_sec = None
 
         return ResolvedSource(
             source=source,
@@ -1130,6 +1137,37 @@ class YtDlpMetadataResolver:
                 )
             ],
         )
+
+    @staticmethod
+    def _youtube_html_duration(source: str) -> int | None:
+        try:
+            req = Request(
+                source,
+                headers={"User-Agent": DEFAULT_USER_AGENT}
+            )
+            with urlopen(req, timeout=8) as resp:
+                html_text = resp.read().decode("utf-8", errors="ignore")
+            
+            m = re.search(r'"lengthSeconds":"(\d+)"', html_text)
+            if m:
+                return int(m.group(1))
+
+            m = re.search(r'"approxDurationMs":"(\d+)"', html_text)
+            if m:
+                return int(m.group(1)) // 1000
+
+            m = re.search(r'itemprop="duration"\s+content="([^"]+)"', html_text)
+            if m:
+                iso = m.group(1)
+                match_iso = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", iso)
+                if match_iso:
+                    h = int(match_iso.group(1) or 0)
+                    m_val = int(match_iso.group(2) or 0)
+                    s = int(match_iso.group(3) or 0)
+                    return h * 3600 + m_val * 60 + s
+        except Exception:
+            pass
+        return None
 
     @staticmethod
     def _youtube_oembed_metadata(source: str) -> dict[str, str]:
@@ -1217,6 +1255,8 @@ class YtDlpMetadataResolver:
                 duration = int(round(float(duration)))
             except (ValueError, TypeError):
                 duration = None
+        if duration is None and hostname(source) in {"youtube.com", "youtu.be", "music.youtube.com"}:
+            duration = YtDlpMetadataResolver._youtube_html_duration(url or source)
 
         # Extract thumbnail
         thumbnail = info.get("thumbnail")
@@ -1699,7 +1739,9 @@ class YtDlpDownloader:
                         "10054", "104", "111", "connection reset", "connection aborted", 
                         "connection refused", "transport error", "timed out", "timeout", 
                         "remote end closed", "recv failure", "errno", "403", "forbidden", 
-                        "unable to download webpage", "http error"
+                        "unable to download webpage", "http error",
+                        "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", 
+                        "confirm you’re not a bot", "captcha"
                     ]
                     if any(t in err_lower for t in conn_terms):
                         print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
@@ -1734,8 +1776,6 @@ class YtDlpDownloader:
         args = [
             *yt_dlp_command(required=not options.dry_run),
             "--ignore-errors",
-            "--extractor-args",
-            "youtube:player_client=android",
             "--no-playlist",
             "--format",
             self._format_selector(options),
@@ -1787,7 +1827,10 @@ class YtDlpDownloader:
             args.extend(["--ffmpeg-location", ffmpeg_path])
 
         if options.cookies_file:
-            args.extend(["--cookies", options.cookies_file])
+            if options.cookies_file.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
+                args.extend(["--cookies-from-browser", options.cookies_file.lower()])
+            else:
+                args.extend(["--cookies", options.cookies_file])
         if options.geo_bypass:
             args.append("--geo-bypass")
         args.append(target)
@@ -2097,7 +2140,10 @@ class YtDlpDownloader:
         if ffmpeg_path:
             args.extend(["--ffmpeg-location", ffmpeg_path])
         if options.cookies_file:
-            args.extend(["--cookies", options.cookies_file])
+            if options.cookies_file.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
+                args.extend(["--cookies-from-browser", options.cookies_file.lower()])
+            else:
+                args.extend(["--cookies", options.cookies_file])
         if options.geo_bypass:
             args.append("--geo-bypass")
         args.append(target)

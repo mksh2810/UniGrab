@@ -461,9 +461,18 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-xs text-on-surface-variant font-semibold">Netscape Cookies File Path (optional)</label>
-                            <input id="settings-cookies" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-primary focus:border-primary" placeholder="e.g. C:\Users\name\cookies.txt">
-                            <p class="text-[11px] text-on-surface-variant/60">Use cookies file for age-restricted or member-only videos.</p>
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs text-on-surface-variant font-semibold">Cookies / Browser (optional)</label>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[10px] text-on-surface-variant/60">Quick pick:</span>
+                                    <button type="button" onclick="setCookieBrowser('chrome')" class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 hover:bg-white/20 text-white/80 transition">chrome</button>
+                                    <button type="button" onclick="setCookieBrowser('edge')" class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 hover:bg-white/20 text-white/80 transition">edge</button>
+                                    <button type="button" onclick="setCookieBrowser('firefox')" class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 hover:bg-white/20 text-white/80 transition">firefox</button>
+                                    <button type="button" onclick="setCookieBrowser('brave')" class="px-1.5 py-0.5 rounded text-[10px] bg-white/10 hover:bg-white/20 text-white/80 transition">brave</button>
+                                </div>
+                            </div>
+                            <input id="settings-cookies" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:ring-primary focus:border-primary" placeholder="e.g. chrome, edge, firefox, or C:\path\to\cookies.txt">
+                            <p class="text-[11px] text-on-surface-variant/60">Enter a browser name or cookies.txt path to bypass bot detection & sign-in prompts.</p>
                         </div>
 
                         <div class="space-y-2">
@@ -590,6 +599,13 @@
             startGlobalPolling();
         });
         
+        function setCookieBrowser(name) {
+            const input = document.getElementById('settings-cookies');
+            input.value = name;
+            savePresets();
+            showToast(`Cookie source set to ${name}`, 'success');
+        }
+
         function loadSettings() {
             // Load Netscape cookies
             document.getElementById('settings-cookies').value = localStorage.getItem('cookies_path') || '';
