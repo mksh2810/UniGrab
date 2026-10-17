@@ -472,7 +472,8 @@ def api_download():
                 "error": None
             }
             
-        # Add to download queue
+        # Ensure background worker thread is active and queue task
+        ensure_worker_started()
         download_queue.put((task_id, resolved, options))
         
         return jsonify({"task_id": task_id, "title": resolved.title})
@@ -793,9 +794,19 @@ def download_worker():
             time.sleep(1)
 
 
+_worker_thread = None
+_worker_lock = threading.Lock()
+
+def ensure_worker_started():
+    global _worker_thread
+    with _worker_lock:
+        if _worker_thread is None or not _worker_thread.is_alive():
+            _worker_thread = threading.Thread(target=download_worker, daemon=True)
+            _worker_thread.start()
+
+# Automatically ensure download worker is active across all WSGI, Vercel, and local executions
+ensure_worker_started()
+
 if __name__ == "__main__":
-    # Start the download queue worker thread
-    threading.Thread(target=download_worker, daemon=True).start()
-    
     print("UniGrab Web Server starting on http://127.0.0.1:5000")
     app.run(host="127.0.0.1", port=5000, debug=True)

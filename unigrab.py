@@ -919,12 +919,19 @@ class YtDlpMetadataResolver:
             extractor_retries = "3"
             timeout = "15"
         else:
-            retries = "2"
-            extractor_retries = "1"
-            timeout = "8"
+            retries = "3"
+            extractor_retries = "2"
+            timeout = "12"
 
         auto_proxy_active = False
         current_proxy = proxy
+
+        # For adult / geo-restricted sites, automatically resolve a proxy upfront if none provided
+        if is_adult_site(metadata_source) and not current_proxy:
+            resolved_prx = AutoProxyResolver.get_proxy(target_url=metadata_source)
+            if resolved_prx:
+                current_proxy = resolved_prx
+                auto_proxy_active = True
 
         def run_resolve(prx):
             resolve_args = [
@@ -956,12 +963,16 @@ class YtDlpMetadataResolver:
             info = run_resolve(current_proxy)
         except Exception as exc:
             err_msg = str(exc).lower()
-            is_conn_error = any(term in err_msg for term in ["10054", "connection aborted", "connection reset", "transport error", "timed out", "timeout", "remote end closed connection", "recv failure"])
+            is_conn_error = any(term in err_msg for term in [
+                "10054", "104", "111", "connection reset", "connection aborted", 
+                "connection refused", "transport error", "timed out", "timeout", 
+                "remote end closed", "recv failure", "errno", "403", "forbidden", 
+                "unable to download webpage", "http error"
+            ])
             
             if is_conn_error and not proxy:
-                print(f"[AutoProxy] Connection error detected ({exc}). Retrying with automatic proxy...")
-                if auto_proxy_active:
-                    AutoProxyResolver.invalidate_proxy()
+                print(f"[AutoProxy] Connection/Access error detected ({exc}). Retrying with automatic proxy...")
+                AutoProxyResolver.invalidate_proxy()
                 try:
                     current_proxy = AutoProxyResolver.get_proxy(target_url=metadata_source, force_refresh=True)
                     if current_proxy:
@@ -1027,10 +1038,16 @@ class YtDlpMetadataResolver:
     @staticmethod
     def _fallback_title(source: str) -> str:
         parsed = urlparse(source)
-        video_id = parse_qs(parsed.query).get("v")
-        if video_id:
-            return video_id[0]
-        return parsed.path.strip("/").split("/")[-1] or "download"
+        query = parse_qs(parsed.query)
+        for key in ("v", "viewkey", "id", "video_id", "vid"):
+            if query.get(key):
+                host = (parsed.hostname or "").removeprefix("www.")
+                return f"{host} - {query[key][0]}"
+        last_segment = parsed.path.strip("/").split("/")[-1]
+        if last_segment and not any(last_segment.endswith(ext) for ext in (".php", ".html", ".htm", ".jsp", ".asp")):
+            return last_segment.replace("-", " ").replace("_", " ").title()
+        host = (parsed.hostname or "").removeprefix("www.")
+        return host or "download"
 
     @classmethod
     def _fallback_resolved_source(cls, source: str) -> ResolvedSource:
@@ -1514,6 +1531,11 @@ class YtDlpDownloader:
         if not options.proxy and AutoProxyResolver._working_proxy:
             options.proxy = AutoProxyResolver._working_proxy
             print(f"[Download] Using auto-resolved proxy: {options.proxy}")
+        elif not options.proxy and is_adult_site(resolved.source):
+            options.proxy = AutoProxyResolver.get_proxy(target_url=resolved.source)
+            if options.proxy:
+                print(f"[Download] Auto-resolved proxy for adult site: {options.proxy}")
+
         output_dir = self.output_dir_for(resolved, options)
         if not options.dry_run:
             ensure_directory(output_dir)
@@ -1534,14 +1556,17 @@ class YtDlpDownloader:
                 try:
                     result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
                 except UniGrabError as dl_exc:
-                    # If the download failed with a connection error and we have
-                    # no explicit proxy yet, try once with AutoProxyResolver.
+                    # If the download failed with a connection/access error, try once with AutoProxyResolver.
                     err_lower = str(dl_exc).lower()
-                    conn_terms = ["10054", "connection aborted", "connection reset",
-                                  "transport error", "timed out", "timeout",
-                                  "recv failure", "remote end closed"]
-                    if any(t in err_lower for t in conn_terms) and not options.proxy:
-                        print(f"[Download] Connection error, retrying track with auto-proxy...")
+                    conn_terms = [
+                        "10054", "104", "111", "connection reset", "connection aborted", 
+                        "connection refused", "transport error", "timed out", "timeout", 
+                        "remote end closed", "recv failure", "errno", "403", "forbidden", 
+                        "unable to download webpage", "http error"
+                    ]
+                    if any(t in err_lower for t in conn_terms):
+                        print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
+                        AutoProxyResolver.invalidate_proxy()
                         auto_proxy = AutoProxyResolver.get_proxy(
                             target_url=track.source_url, force_refresh=True
                         )
