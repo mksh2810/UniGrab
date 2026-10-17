@@ -436,8 +436,16 @@ def api_download():
     media_type = "music" if mode == "m" else "video"
     
     # Extract options with defaults
-    audio_format = data.get("format", "mp3")
-    video_format = data.get("video_format", "mp4")
+    if media_type == "music":
+        audio_format = data.get("format", "mp3")
+        if audio_format not in SUPPORTED_FORMATS:
+            audio_format = "mp3"
+        video_format = "mp4"
+    else:
+        audio_format = "mp3"
+        video_format = data.get("video_format") or data.get("format", "mp4")
+        if video_format not in SUPPORTED_VIDEO_FORMATS:
+            video_format = "mp4"
     quality = data.get("quality", "best")
     video_quality = data.get("video_quality", "best")
     

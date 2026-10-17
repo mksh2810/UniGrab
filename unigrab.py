@@ -1091,29 +1091,28 @@ class YtDlpMetadataResolver:
     @classmethod
     def _fallback_resolved_source(cls, source: str) -> ResolvedSource:
         platform = hostname(source) or "web"
-        metadata = cls._youtube_oembed_metadata(source) if cls._is_youtube_host(source) else {}
+        metadata = {}
+        if cls._is_youtube_host(source):
+            metadata = cls._youtube_innertube_metadata(source) or cls._youtube_oembed_metadata(source)
         metadata = metadata or cls._open_graph_metadata(source)
         title = metadata.get("title") or cls._fallback_title(source)
         artist = metadata.get("artist")
         album = metadata.get("album")
         thumbnail = metadata.get("thumbnail") or metadata.get("thumbnail_url")
         if not thumbnail and cls._is_youtube_host(source):
-            parsed = urlparse(source)
-            q = parse_qs(parsed.query)
-            vid = q.get("v", [None])[0] or (parsed.path.strip("/").split("/")[-1] if hostname(source) == "youtu.be" else None)
+            vid = cls._extract_youtube_video_id(source)
             if vid:
                 thumbnail = f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
 
         duration_sec = None
-        if cls._is_youtube_host(source):
+        duration_val = metadata.get("duration")
+        if duration_val is not None:
+            try:
+                duration_sec = int(round(float(duration_val)))
+            except (ValueError, TypeError):
+                duration_sec = None
+        if duration_sec is None and cls._is_youtube_host(source):
             duration_sec = cls._youtube_html_duration(source)
-        if duration_sec is None:
-            duration_val = metadata.get("duration")
-            if duration_val:
-                try:
-                    duration_sec = int(round(float(duration_val)))
-                except (ValueError, TypeError):
-                    duration_sec = None
 
         return ResolvedSource(
             source=source,
@@ -1137,6 +1136,64 @@ class YtDlpMetadataResolver:
                 )
             ],
         )
+
+    @staticmethod
+    def _extract_youtube_video_id(source: str) -> str | None:
+        try:
+            parsed = urlparse(source)
+            netloc = (parsed.netloc or "").lower()
+            if "youtu.be" in netloc:
+                return parsed.path.strip("/").split("/")[0]
+            query = parse_qs(parsed.query)
+            if query.get("v"):
+                return query["v"][0]
+            for seg in ("embed", "v", "shorts"):
+                if f"/{seg}/" in parsed.path:
+                    return parsed.path.split(f"/{seg}/")[1].split("/")[0].split("?")[0]
+        except Exception:
+            pass
+        return None
+
+    @classmethod
+    def _youtube_innertube_metadata(cls, source: str) -> dict:
+        vid = cls._extract_youtube_video_id(source)
+        if not vid:
+            return {}
+        try:
+            url = "https://www.youtube.com/youtubei/v1/player"
+            payload = json.dumps({
+                "videoId": vid,
+                "context": {
+                    "client": {
+                        "clientName": "WEB",
+                        "clientVersion": "2.20240101.00.00",
+                        "hl": "en"
+                    }
+                }
+            }).encode("utf-8")
+            req = Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json", "User-Agent": DEFAULT_USER_AGENT}
+            )
+            with urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            vd = data.get("videoDetails", {})
+            length_sec = int(vd["lengthSeconds"]) if vd.get("lengthSeconds") else None
+            title = vd.get("title")
+            author = vd.get("author")
+            thumbnails = vd.get("thumbnail", {}).get("thumbnails", [])
+            thumb_url = thumbnails[-1].get("url") if thumbnails else f"https://i.ytimg.com/vi/{vid}/maxresdefault.jpg"
+            return {
+                "title": title,
+                "artist": author,
+                "duration": length_sec,
+                "thumbnail": thumb_url,
+                "thumbnail_url": thumb_url,
+                "metadata_source": "innertube"
+            }
+        except Exception:
+            return {}
 
     @staticmethod
     def _youtube_html_duration(source: str) -> int | None:
@@ -1256,7 +1313,8 @@ class YtDlpMetadataResolver:
             except (ValueError, TypeError):
                 duration = None
         if duration is None and hostname(source) in {"youtube.com", "youtu.be", "music.youtube.com"}:
-            duration = YtDlpMetadataResolver._youtube_html_duration(url or source)
+            inner_meta = YtDlpMetadataResolver._youtube_innertube_metadata(url or source)
+            duration = inner_meta.get("duration") or YtDlpMetadataResolver._youtube_html_duration(url or source)
 
         # Extract thumbnail
         thumbnail = info.get("thumbnail")
@@ -1861,9 +1919,9 @@ class YtDlpDownloader:
     def _validate_options(options: DownloadOptions) -> None:
         if options.media_type not in SUPPORTED_MEDIA_TYPES:
             raise UniGrabError(f"Unsupported media type `{options.media_type}`. Use one of: {', '.join(sorted(SUPPORTED_MEDIA_TYPES))}.")
-        if options.audio_format not in SUPPORTED_FORMATS:
+        if options.media_type == "music" and options.audio_format not in SUPPORTED_FORMATS:
             raise UniGrabError(f"Unsupported format `{options.audio_format}`. Use one of: {', '.join(sorted(SUPPORTED_FORMATS))}.")
-        if options.video_format not in SUPPORTED_VIDEO_FORMATS:
+        if options.media_type == "video" and options.video_format not in SUPPORTED_VIDEO_FORMATS:
             raise UniGrabError(f"Unsupported video format `{options.video_format}`. Use one of: {', '.join(sorted(SUPPORTED_VIDEO_FORMATS))}.")
         if options.quality not in QUALITY_VALUES:
             raise UniGrabError(f"Unsupported quality `{options.quality}`. Use one of: {', '.join(QUALITY_VALUES)}.")

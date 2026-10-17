@@ -1128,8 +1128,8 @@
             const payload = {
                 source: currentAnalysis.source,
                 mode: currentMode,
-                format: selectedFormat,
-                video_format: selectedVideoFormat,
+                format: currentMode === 'm' ? selectedFormat : 'mp3',
+                video_format: currentMode === 'v' ? (selectedVideoFormat || 'mp4') : 'mp4',
                 quality: currentMode === 'm' ? selectedQuality : 'best',
                 video_quality: currentMode === 'v' ? selectedQuality : 'best',
                 threads: document.getElementById('thread-slider').value,
