@@ -269,10 +269,14 @@
                         </div>
                         <div class="space-y-4">
                             <h2 id="preview-title" class="font-headline-lg text-white leading-tight">Album or Playlist Title</h2>
-                            <div class="grid grid-cols-3 gap-4 py-4 border-y border-white/10">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-4 border-y border-white/10">
                                 <div class="flex flex-col gap-1">
                                     <span class="text-on-surface-variant text-[11px] font-medium uppercase tracking-wider">Tracks</span>
                                     <span id="preview-stat-tracks" class="text-primary font-bold text-lg">--</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-on-surface-variant text-[11px] font-medium uppercase tracking-wider">Duration</span>
+                                    <span id="preview-stat-duration" class="text-primary font-bold text-lg">--</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-on-surface-variant text-[11px] font-medium uppercase tracking-wider">Source</span>
@@ -959,9 +963,20 @@
 
             // Set Title & Stats
             document.getElementById('preview-title').innerText = data.title;
-            document.getElementById('preview-stat-tracks').innerText = data.tracks.length;
-            document.getElementById('preview-stat-source').innerText = data.platform.toUpperCase();
-            document.getElementById('preview-stat-type').innerText = data.kind.toUpperCase();
+            document.getElementById('preview-stat-tracks').innerText = data.tracks ? data.tracks.length : 0;
+
+            // Set Duration
+            let totalDuration = data.duration_seconds;
+            if (!totalDuration && data.tracks && data.tracks.length > 0) {
+                totalDuration = data.tracks.reduce((acc, t) => acc + (t.duration_seconds || 0), 0);
+            }
+            const durEl = document.getElementById('preview-stat-duration');
+            if (durEl) {
+                durEl.innerText = formatDuration(totalDuration);
+            }
+
+            document.getElementById('preview-stat-source').innerText = (data.platform || '--').toUpperCase();
+            document.getElementById('preview-stat-type').innerText = (data.kind || '--').toUpperCase();
 
             // Populate qualities dropdown dynamically based on analysis results
             populateQualities(data);
@@ -970,8 +985,9 @@
 
             // Set Thumbnail
             const thumb = document.getElementById('preview-thumbnail');
-            if (data.thumbnail_url) {
-                thumb.src = data.thumbnail_url;
+            const thumbUrl = data.thumbnail_url || (data.tracks && data.tracks[0] && data.tracks[0].thumbnail_url);
+            if (thumbUrl) {
+                thumb.src = thumbUrl;
             } else if (data.platform === 'spotify') {
                 thumb.src = "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800";
             } else if (data.platform === 'youtube' || data.platform === 'music.youtube.com') {
@@ -1009,15 +1025,15 @@
         }
 
         function formatDuration(seconds) {
-            if (!seconds) return "0 secs";
+            if (!seconds || isNaN(seconds) || seconds <= 0) return "--";
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
             const s = Math.floor(seconds % 60);
             const res = [];
-            if (h > 0) res.push(`${h} hrs`);
-            if (m > 0) res.push(`${m} mins`);
-            if (s > 0 || res.length === 0) res.push(`${s} secs`);
-            return res.join(', ');
+            if (h > 0) res.push(`${h} hr${h > 1 ? 's' : ''}`);
+            if (m > 0) res.push(`${m} min${m > 1 ? 's' : ''}`);
+            if (s > 0 || res.length === 0) res.push(`${s} sec${s > 1 ? 's' : ''}`);
+            return res.join(' ');
         }
 
         function formatEta(etaStr) {
@@ -1068,15 +1084,12 @@
         }
 
         async function stopTask(taskId) {
+            removeActiveTaskUI(taskId);
             try {
                 const res = await fetch(`/api/task/stop/${taskId}`, { method: 'POST' });
-                if (!res.ok) {
-                    const data = await res.json();
-                    throw new Error(data.error || "Failed to stop");
-                }
-                showToast("Download stopped & cancelled", "info");
+                showToast("Download cancelled", "info");
             } catch (err) {
-                showToast(err.message, "error");
+                console.error("Stop task error:", err);
             }
         }
 

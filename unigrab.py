@@ -98,6 +98,11 @@ class Track:
             self.artist = remove_emojis(self.artist, fallback="Unknown Artist")
         if self.album:
             self.album = remove_emojis(self.album, fallback="Unknown Album")
+        if self.duration_seconds is not None:
+            try:
+                self.duration_seconds = int(round(float(self.duration_seconds)))
+            except (ValueError, TypeError):
+                self.duration_seconds = None
 
     @property
     def query(self) -> str:
@@ -105,11 +110,13 @@ class Track:
         return " ".join(part for part in parts if part).strip()
 
     def to_dict(self) -> dict[str, Any]:
+        thumb = self.metadata.get("thumbnail") or self.metadata.get("thumbnail_url")
         return {
             "title": self.title,
             "artist": self.artist,
             "album": self.album,
             "duration_seconds": self.duration_seconds,
+            "thumbnail_url": thumb,
             "isrc": self.isrc,
             "source_url": self.source_url,
             "platform": self.platform,
@@ -430,6 +437,21 @@ def bundled_ffmpeg_path(*, required: bool = False) -> str | None:
 
 def python_package_status(module_name: str) -> str:
     return "installed" if importlib.util.find_spec(module_name) else "missing"
+
+
+_IMPERSONATE_AVAILABLE: bool | None = None
+
+def is_impersonate_available() -> bool:
+    global _IMPERSONATE_AVAILABLE
+    if _IMPERSONATE_AVAILABLE is not None:
+        return _IMPERSONATE_AVAILABLE
+    try:
+        import curl_cffi
+        _IMPERSONATE_AVAILABLE = True
+    except ImportError:
+        _IMPERSONATE_AVAILABLE = False
+    return _IMPERSONATE_AVAILABLE
+
 
 class Resolver(Protocol):
     def can_resolve(self, source: str) -> bool:
@@ -933,7 +955,7 @@ class YtDlpMetadataResolver:
                 current_proxy = resolved_prx
                 auto_proxy_active = True
 
-        def run_resolve(prx):
+        def run_resolve(prx, use_impersonate=True):
             resolve_args = [
                 *yt_dlp_command(),
                 "--dump-single-json",
@@ -945,10 +967,11 @@ class YtDlpMetadataResolver:
                 "--no-check-certificates",
                 "--legacy-server-connect",
                 "--force-ipv4",
-                "--impersonate", "chrome",
                 "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                 "--referer", "https://www.google.com/",
             ]
+            if use_impersonate and is_impersonate_available():
+                resolve_args.extend(["--impersonate", "chrome"])
             if prx:
                 resolve_args.extend(["--proxy", prx])
             if cookies:
@@ -957,7 +980,12 @@ class YtDlpMetadataResolver:
                 else:
                     resolve_args.extend(["--cookies", cookies])
             resolve_args.append(metadata_source)
-            return run_json_command(resolve_args)
+            try:
+                return run_json_command(resolve_args)
+            except Exception as e:
+                if use_impersonate and ("impersonate" in str(e).lower() or "curl_cffi" in str(e).lower()):
+                    return run_resolve(prx, use_impersonate=False)
+                raise
 
         try:
             info = run_resolve(current_proxy)
@@ -1039,13 +1067,20 @@ class YtDlpMetadataResolver:
     def _fallback_title(source: str) -> str:
         parsed = urlparse(source)
         query = parse_qs(parsed.query)
-        for key in ("v", "viewkey", "id", "video_id", "vid"):
+        for key in ("v", "viewkey", "id", "video_id", "vid", "title", "name"):
             if query.get(key):
                 host = (parsed.hostname or "").removeprefix("www.")
-                return f"{host} - {query[key][0]}"
-        last_segment = parsed.path.strip("/").split("/")[-1]
-        if last_segment and not any(last_segment.endswith(ext) for ext in (".php", ".html", ".htm", ".jsp", ".asp")):
-            return last_segment.replace("-", " ").replace("_", " ").title()
+                val = query[key][0].replace("-", " ").replace("_", " ").title()
+                return f"{host} - {val}"
+        for segment in reversed(parsed.path.strip("/").split("/")):
+            if not segment:
+                continue
+            cleaned_seg = re.sub(r"\.(php|html?|jsp|asp|aspx)$", "", segment, flags=re.IGNORECASE).strip()
+            cleaned_seg_lower = cleaned_seg.lower()
+            if cleaned_seg_lower in {"video", "index", "default", "watch", "view", "play", "item", "media"}:
+                continue
+            if cleaned_seg:
+                return cleaned_seg.replace("-", " ").replace("_", " ").title()
         host = (parsed.hostname or "").removeprefix("www.")
         return host or "download"
 
@@ -1057,6 +1092,22 @@ class YtDlpMetadataResolver:
         title = metadata.get("title") or cls._fallback_title(source)
         artist = metadata.get("artist")
         album = metadata.get("album")
+        thumbnail = metadata.get("thumbnail") or metadata.get("thumbnail_url")
+        if not thumbnail and cls._is_youtube_host(source):
+            parsed = urlparse(source)
+            q = parse_qs(parsed.query)
+            vid = q.get("v", [None])[0] or (parsed.path.strip("/").split("/")[-1] if hostname(source) == "youtu.be" else None)
+            if vid:
+                thumbnail = f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+
+        duration_val = metadata.get("duration")
+        duration_sec = None
+        if duration_val:
+            try:
+                duration_sec = int(round(float(duration_val)))
+            except (ValueError, TypeError):
+                duration_sec = None
+
         return ResolvedSource(
             source=source,
             kind="track",
@@ -1067,9 +1118,15 @@ class YtDlpMetadataResolver:
                     title=title,
                     artist=artist,
                     album=album,
+                    duration_seconds=duration_sec,
                     source_url=source,
                     platform=platform,
-                    metadata={"metadata_source": metadata.get("metadata_source", "fallback")},
+                    metadata={
+                        "metadata_source": metadata.get("metadata_source", "fallback"),
+                        "thumbnail": thumbnail,
+                        "thumbnail_url": thumbnail,
+                        "duration_seconds": duration_sec,
+                    },
                 )
             ],
         )
@@ -1088,6 +1145,8 @@ class YtDlpMetadataResolver:
             for key, value in {
                 "title": data.get("title"),
                 "artist": data.get("author_name"),
+                "thumbnail": data.get("thumbnail_url"),
+                "thumbnail_url": data.get("thumbnail_url"),
                 "metadata_source": "youtube_oembed",
             }.items()
             if value
@@ -1117,12 +1176,18 @@ class YtDlpMetadataResolver:
         title = meta("music:song", "og:title", "twitter:title")
         artist = meta("music:musician", "music:creator", "artist", "twitter:creator")
         album = meta("music:album", "album")
+        thumbnail = meta("og:image", "og:image:url", "twitter:image", "twitter:image:src")
+        duration = meta("video:duration", "music:duration", "duration")
+
         return {
             key: value
             for key, value in {
                 "title": title,
                 "artist": artist,
                 "album": album,
+                "thumbnail": thumbnail,
+                "thumbnail_url": thumbnail,
+                "duration": duration,
                 "metadata_source": "open_graph",
             }.items()
             if value
@@ -1137,15 +1202,64 @@ class YtDlpMetadataResolver:
         if not is_url(url) and hostname(source) in {"youtube.com", "youtu.be", "music.youtube.com"}:
             video_id = info.get("id") or url
             url = f"https://www.youtube.com/watch?v={video_id}"
+
+        # Clean title if it's a generic file like video.php or raw script name
+        cleaned_title = str(title).strip()
+        if cleaned_title.lower().endswith((".php", ".html", ".htm", ".jsp", ".asp")) or cleaned_title.lower() in {"video", "download", "watch", "index"}:
+            fallback = YtDlpMetadataResolver._fallback_title(source)
+            if fallback and not fallback.lower().endswith((".php", ".html", ".htm")):
+                cleaned_title = fallback
+
+        # Extract duration
+        duration = info.get("duration")
+        if duration is not None:
+            try:
+                duration = int(round(float(duration)))
+            except (ValueError, TypeError):
+                duration = None
+
+        # Extract thumbnail
+        thumbnail = info.get("thumbnail")
+        if not thumbnail and info.get("thumbnails"):
+            thumbs = info.get("thumbnails")
+            if isinstance(thumbs, list) and thumbs:
+                thumbnail = thumbs[-1].get("url")
+        if not thumbnail and hostname(source) in {"youtube.com", "youtu.be", "music.youtube.com"}:
+            vid_id = info.get("id")
+            if not vid_id:
+                parsed_u = urlparse(url)
+                q_id = parse_qs(parsed_u.query).get("v")
+                vid_id = q_id[0] if q_id else (parsed_u.path.strip("/").split("/")[-1] if hostname(source) == "youtu.be" else None)
+            if vid_id:
+                thumbnail = f"https://i.ytimg.com/vi/{vid_id}/hqdefault.jpg"
+
+        # Extract available resolutions
+        available_res = []
+        formats = info.get("formats") or []
+        if formats:
+            heights = set()
+            for f in formats:
+                h = f.get("height")
+                if h and isinstance(h, int) and h >= 144:
+                    heights.add(h)
+            available_res = [f"{h}p" for h in sorted(heights, reverse=True)]
+
         return Track(
-            title=title,
+            title=cleaned_title,
             artist=artist,
             album=info.get("album"),
-            duration_seconds=info.get("duration"),
+            duration_seconds=duration,
             source_url=url,
             platform=hostname(source) or "yt-dlp",
             track_number=info.get("playlist_index"),
-            metadata={"id": info.get("id"), "artists": artists},
+            metadata={
+                "id": info.get("id"),
+                "artists": artists,
+                "thumbnail": thumbnail,
+                "thumbnail_url": thumbnail,
+                "duration_seconds": duration,
+                "available_resolutions": available_res,
+            },
         )
 
     @staticmethod
@@ -1251,19 +1365,28 @@ class SpotifyResolver:
     @staticmethod
     def _track(item: dict) -> Track:
         album = item.get("album") or {}
+        images = album.get("images") or []
+        thumbnail = images[0].get("url") if images else None
         artist_names = [artist.get("name", "") for artist in item.get("artists", []) if artist.get("name")]
         artists = ", ".join(artist_names)
         external_ids = item.get("external_ids") or {}
+        duration_sec = round(item["duration_ms"] / 1000) if item.get("duration_ms") else None
         return Track(
             title=item.get("name") or "Unknown title",
             artist=artists or None,
             album=album.get("name"),
-            duration_seconds=round(item["duration_ms"] / 1000) if item.get("duration_ms") else None,
+            duration_seconds=duration_sec,
             isrc=external_ids.get("isrc"),
             source_url=(item.get("external_urls") or {}).get("spotify"),
             platform="spotify",
             track_number=item.get("track_number"),
-            metadata={"spotify_id": item.get("id"), "artists": artist_names},
+            metadata={
+                "spotify_id": item.get("id"),
+                "artists": artist_names,
+                "thumbnail": thumbnail,
+                "thumbnail_url": thumbnail,
+                "duration_seconds": duration_sec,
+            },
         )
 
     @staticmethod
@@ -1279,6 +1402,7 @@ class SpotifyResolver:
 
         if kind == "track":
             track_title, artist = SpotifyResolver._split_spotify_title(clean_title)
+            thumb = data.get("thumbnail_url")
             track = Track(
                 title=track_title,
                 artist=artist,
@@ -1287,7 +1411,8 @@ class SpotifyResolver:
                 metadata={
                     "spotify_id": spotify_id,
                     "artists": normalize_artist_values(artist),
-                    "thumbnail_url": data.get("thumbnail_url"),
+                    "thumbnail": thumb,
+                    "thumbnail_url": thumb,
                     "metadata_source": "spotify_oembed",
                 },
             )
@@ -1356,16 +1481,26 @@ class AppleMusicResolver:
 
     @staticmethod
     def _track(item: dict) -> Track:
+        duration_sec = round(item["trackTimeMillis"] / 1000) if item.get("trackTimeMillis") else None
+        thumb = item.get("artworkUrl100") or item.get("artworkUrl60")
+        if thumb:
+            thumb = thumb.replace("100x100bb", "600x600bb")
         return Track(
             title=item.get("trackName") or "Unknown title",
             artist=item.get("artistName"),
             album=item.get("collectionName"),
-            duration_seconds=round(item["trackTimeMillis"] / 1000) if item.get("trackTimeMillis") else None,
+            duration_seconds=duration_sec,
             isrc=item.get("isrc"),
             source_url=item.get("trackViewUrl"),
             platform="apple_music",
             track_number=item.get("trackNumber"),
-            metadata={"itunes_track_id": item.get("trackId"), "artists": normalize_artist_values(item.get("artistName"))},
+            metadata={
+                "itunes_track_id": item.get("trackId"),
+                "artists": normalize_artist_values(item.get("artistName")),
+                "thumbnail": thumb,
+                "thumbnail_url": thumb,
+                "duration_seconds": duration_sec,
+            },
         )
 
 
@@ -1545,6 +1680,8 @@ class YtDlpDownloader:
             reporter.start_collection(resolved, output_dir, len(tracks))
 
         for index, track in enumerate(tracks, start=1):
+            if reporter and hasattr(reporter, "is_cancelled") and reporter.is_cancelled():
+                break
             self._normalize_track_number(resolved, track, index)
             command = self.build_command(track, options, index=index, output_dir=output_dir)
             result = DownloadResult(track=track, command=command)
@@ -1615,13 +1752,14 @@ class YtDlpDownloader:
             "--no-check-certificates",
             "--legacy-server-connect",
             "--force-ipv4",
-            "--impersonate", "chrome",
             "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "--referer", "https://www.google.com/",
             "--retries", "5",
             "--fragment-retries", "5",
             "--socket-timeout", "30",
         ]
+        if is_impersonate_available():
+            args.extend(["--impersonate", "chrome"])
 
         # Proxy support — use the proxy that worked during metadata resolution
         if options.proxy:
@@ -1744,9 +1882,19 @@ class YtDlpDownloader:
         except FileNotFoundError as exc:
             raise DependencyMissingError("Could not start the Python yt-dlp runner.") from exc
 
+        if reporter and hasattr(reporter, "register_process"):
+            reporter.register_process(process)
+
         output_lines: list[str] = []
         assert process.stdout is not None
         while True:
+            if reporter and hasattr(reporter, "is_cancelled") and reporter.is_cancelled():
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+                break
+
             line = process.stdout.readline()
             if not line:
                 break
@@ -1754,11 +1902,16 @@ class YtDlpDownloader:
             if not line:
                 continue
             output_lines.append(line)
+            if reporter and hasattr(reporter, "log"):
+                reporter.log(line)
             fraction = YtDlpDownloader._progress_fraction(line)
             if reporter and fraction is not None:
                 reporter.progress(index, total_tracks, fraction)
 
         return_code = process.wait()
+        if reporter and hasattr(reporter, "unregister_process"):
+            reporter.unregister_process()
+
         downloaded_path = None
         for line in reversed(output_lines):
             path = Path(line)
@@ -1768,6 +1921,18 @@ class YtDlpDownloader:
 
         if not downloaded_path:
             message = "\n".join(output_lines[-20:]).strip()
+            if "--impersonate" in command and ("impersonate target" in message.lower() or "curl_cffi" in message.lower()):
+                new_cmd = []
+                skip_next = False
+                for arg in command:
+                    if skip_next:
+                        skip_next = False
+                        continue
+                    if arg == "--impersonate":
+                        skip_next = True
+                        continue
+                    new_cmd.append(arg)
+                return YtDlpDownloader._exec_command(new_cmd, reporter=reporter, index=index, total_tracks=total_tracks)
             raise UniGrabError(message or f"`yt-dlp` failed; no output file was created (exit code {return_code}).")
 
         return downloaded_path

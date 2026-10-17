@@ -80,6 +80,34 @@ def save_library_db(db):
         print(f"Error saving library DB: {e}")
 
 
+TASKS_JSON_PATH = BASE_DOWNLOAD_DIR / "tasks.json"
+
+def load_tasks_db():
+    if TASKS_JSON_PATH.exists():
+        try:
+            import json
+            with open(TASKS_JSON_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_tasks_db(all_tasks):
+    try:
+        import json
+        TASKS_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+        serialized = {}
+        for tid, t in all_tasks.items():
+            serialized[tid] = {
+                k: v for k, v in t.items()
+                if k not in ("process",)
+            }
+        with open(TASKS_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(serialized, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving tasks DB: {e}")
+
+
 class WebDownloadReporter:
     def __init__(self, task_id):
         self.task_id = task_id
@@ -89,6 +117,10 @@ class WebDownloadReporter:
     def register_process(self, process):
         with active_processes_lock:
             active_processes[self.task_id] = process
+
+    def unregister_process(self):
+        with active_processes_lock:
+            active_processes.pop(self.task_id, None)
 
     def is_cancelled(self):
         with tasks_lock:
@@ -103,6 +135,7 @@ class WebDownloadReporter:
                 t["current_track"] = 1
                 t["logs"].append(f"Starting download collection: {resolved.title or 'Unknown Collection'}")
                 t["logs"].append(f"Target folder: {output_dir}")
+                save_tasks_db(tasks)
 
     def start_track(self, track, index, total_tracks):
         with tasks_lock:
@@ -114,6 +147,7 @@ class WebDownloadReporter:
                 t["logs"].append(f"Title: {track.title}")
                 if track.artist:
                     t["logs"].append(f"Artist: {track.artist}")
+                save_tasks_db(tasks)
         self.last_progress_time = time.time()
         self.last_progress_fraction = 0.0
 
@@ -199,6 +233,7 @@ class WebDownloadReporter:
                         "created_at": time.time()
                     }
                     save_library_db(db)
+                save_tasks_db(tasks)
 
 
 def run_download_thread(task_id, resolved, options):
@@ -216,11 +251,13 @@ def run_download_thread(task_id, resolved, options):
                     t["overall_progress"] = 1.0
                     t["current_progress"] = 1.0
                     t["logs"].append("\nDownload collection completed successfully!")
+            save_tasks_db(tasks)
     except Exception as e:
         with tasks_lock:
             t = tasks.get(task_id)
             if t and t["status"] == "cancelled":
                 t["logs"].append("\nDownload cancelled by user.")
+                save_tasks_db(tasks)
                 return
         import traceback
         traceback.print_exc()
@@ -231,6 +268,7 @@ def run_download_thread(task_id, resolved, options):
                     t["status"] = "failed"
                     t["error"] = str(e)
                     t["logs"].append(f"\nFailed: {str(e)}")
+            save_tasks_db(tasks)
     finally:
         with active_processes_lock:
             active_processes.pop(task_id, None)
@@ -342,10 +380,17 @@ def api_resolve():
         resolved = registry.resolve(source, proxy=proxy, cookies=cookies)
         
         thumbnail_url = None
+        duration_seconds = None
         available_resolutions = []
         if resolved.tracks:
-            thumbnail_url = resolved.tracks[0].metadata.get("thumbnail") or resolved.tracks[0].metadata.get("thumbnail_url")
-            available_resolutions = resolved.tracks[0].metadata.get("available_resolutions", [])
+            first_t = resolved.tracks[0]
+            thumbnail_url = first_t.metadata.get("thumbnail") or first_t.metadata.get("thumbnail_url")
+            duration_seconds = first_t.duration_seconds or first_t.metadata.get("duration_seconds")
+            available_resolutions = first_t.metadata.get("available_resolutions", [])
+            if not duration_seconds and len(resolved.tracks) > 1:
+                total_dur = sum(t.duration_seconds or 0 for t in resolved.tracks)
+                if total_dur > 0:
+                    duration_seconds = total_dur
 
         return jsonify({
             "source": resolved.source,
@@ -354,6 +399,7 @@ def api_resolve():
             "title": resolved.title or resolved.source,
             "tracks": [t.to_dict() for t in resolved.tracks],
             "thumbnail_url": thumbnail_url,
+            "duration_seconds": duration_seconds,
             "available_resolutions": available_resolutions,
             "is_adult": is_adult_site(source)
         })
@@ -471,6 +517,7 @@ def api_download():
                 "results": [],
                 "error": None
             }
+            save_tasks_db(tasks)
             
         # Ensure background worker thread is active and queue task
         ensure_worker_started()
@@ -488,6 +535,11 @@ def api_status(task_id):
     with tasks_lock:
         task = tasks.get(task_id)
         if not task:
+            disk_tasks = load_tasks_db()
+            task = disk_tasks.get(task_id)
+            if task:
+                tasks[task_id] = task
+        if not task:
             return jsonify({"error": "Task not found"}), 404
         return jsonify(task)
 
@@ -495,6 +547,10 @@ def api_status(task_id):
 @app.route("/api/tasks", methods=["GET"])
 def api_get_tasks():
     with tasks_lock:
+        disk_tasks = load_tasks_db()
+        for tid, t in disk_tasks.items():
+            if tid not in tasks:
+                tasks[tid] = t
         return jsonify(tasks)
 
 
@@ -691,12 +747,27 @@ def api_stop_task(task_id):
     with tasks_lock:
         task = tasks.get(task_id)
         if not task:
-            return jsonify({"error": "Task not found"}), 404
-        
-        prev_status = task["status"]
-        task["status"] = "cancelled"
-        task["logs"].append("[info] Download cancelled by user.")
-        
+            disk_tasks = load_tasks_db()
+            task = disk_tasks.get(task_id)
+            if task:
+                tasks[task_id] = task
+
+        if task:
+            prev_status = task.get("status")
+            task["status"] = "cancelled"
+            if "logs" not in task:
+                task["logs"] = []
+            task["logs"].append("[info] Download cancelled by user.")
+            save_tasks_db(tasks)
+        else:
+            prev_status = None
+            tasks[task_id] = {
+                "task_id": task_id,
+                "status": "cancelled",
+                "logs": ["[info] Download cancelled by user."]
+            }
+            save_tasks_db(tasks)
+
     with active_processes_lock:
         proc = active_processes.pop(task_id, None)
         
@@ -750,22 +821,39 @@ def api_formats():
     })
 
 
+active_task_threads = {}
+active_threads_lock = threading.Lock()
+
 def run_download_thread_wrapper(task_id, resolved, options):
     try:
         run_download_thread(task_id, resolved, options)
     finally:
+        with active_threads_lock:
+            active_task_threads.pop(task_id, None)
         download_queue.task_done()
 
 
 def download_worker():
     while True:
         try:
-            # Check if there is an active downloading task (only count truly running ones)
+            # Check truly running threads to avoid getting stuck if an unhandled error happens
+            with active_threads_lock:
+                dead_tids = [tid for tid, th in active_task_threads.items() if not th.is_alive()]
+                for tid in dead_tids:
+                    active_task_threads.pop(tid, None)
+                active_count = len(active_task_threads)
+
+            # Reconcile any orphan "downloading" tasks whose thread ended
             with tasks_lock:
-                active_count = sum(1 for t in tasks.values() if t["status"] == "downloading")
-            
-            if active_count < 1:
-                # Get the next item from the queue without blocking indefinitely
+                for tid, t in list(tasks.items()):
+                    if t.get("status") == "downloading" and tid not in active_task_threads:
+                        t["status"] = "failed"
+                        t["error"] = "Download interrupted"
+                        t["logs"].append("[error] Download interrupted unexpectedly.")
+                        save_tasks_db(tasks)
+
+            # Support concurrent downloads (up to 2 parallel tasks)
+            if active_count < 2:
                 try:
                     task_id, resolved, options = download_queue.get(timeout=0.5)
                 except queue.Empty:
@@ -773,21 +861,23 @@ def download_worker():
                 
                 with tasks_lock:
                     task = tasks.get(task_id)
-                    if not task or task["status"] == "cancelled":
+                    if not task or task.get("status") == "cancelled":
                         download_queue.task_done()
                         continue
                     
                     task["status"] = "downloading"
                     task["logs"].append("[info] Processing task from queue...")
+                    save_tasks_db(tasks)
                 
-                # Start download thread asynchronously
-                threading.Thread(
+                th = threading.Thread(
                     target=run_download_thread_wrapper,
                     args=(task_id, resolved, options),
                     daemon=True
-                ).start()
+                )
+                with active_threads_lock:
+                    active_task_threads[task_id] = th
+                th.start()
             else:
-                # If a download is active, sleep before checking again
                 time.sleep(0.3)
         except Exception as e:
             print(f"Error in download worker: {e}")
