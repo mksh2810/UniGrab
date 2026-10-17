@@ -1,4 +1,5 @@
 flask
+yt-dlp
+curl-cffi
 imageio-ffmpeg
 mutagen
-yt-dlp

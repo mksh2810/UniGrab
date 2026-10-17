@@ -14,3 +14,16 @@ dist/
 graphify-out/
 .understand-anything/
 scratch/
+cookies.txt
+
+# Android build artifacts
+UniGrabApp/.gradle/
+UniGrabApp/.idea/
+UniGrabApp/.kotlin/
+UniGrabApp/build/
+UniGrabApp/**/build/
+UniGrabApp/local.properties
+UniGrabApp/*.apk
+UniGrabApp/**/*.apk
+UniGrabApp/library.zip
+

@@ -10,13 +10,14 @@ import queue
 import urllib.parse
 from pathlib import Path
 
-# Automatically install flask if missing
+# Automatically install flask if missing (when running locally)
 try:
     import flask
 except ImportError:
-    print("Installing flask dependency...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "flask"], check=True)
-    importlib.invalidate_caches()
+    if not os.environ.get("VERCEL"):
+        print("Installing flask dependency...")
+        subprocess.run([sys.executable, "-m", "pip", "install", "flask"], check=True)
+        importlib.invalidate_caches()
 
 from flask import Flask, request, jsonify, render_template, send_from_directory, send_file
 
@@ -27,7 +28,8 @@ from unigrab import (
     is_adult_site, get_cookies_file
 )
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent
+app = Flask(__name__, template_folder=str(BASE_DIR / "templates"), static_folder=str(BASE_DIR / "static"))
 
 # Music-only platforms that should be blocked from video mode
 AUDIO_ONLY_HOSTS = {
@@ -50,11 +52,13 @@ active_processes_lock = threading.Lock()
 tasks = {}
 tasks_lock = threading.Lock()
 
-# Ensure downloads folders exist
-Path("downloads/music").mkdir(parents=True, exist_ok=True)
-Path("downloads/videos").mkdir(parents=True, exist_ok=True)
+# Ensure downloads folders exist (use /tmp on Vercel for serverless writable storage)
+IS_VERCEL = bool(os.environ.get("VERCEL"))
+BASE_DOWNLOAD_DIR = Path("/tmp/downloads") if IS_VERCEL else (BASE_DIR / "downloads")
+(BASE_DOWNLOAD_DIR / "music").mkdir(parents=True, exist_ok=True)
+(BASE_DOWNLOAD_DIR / "videos").mkdir(parents=True, exist_ok=True)
 
-LIBRARY_JSON_PATH = Path("downloads/library.json")
+LIBRARY_JSON_PATH = BASE_DOWNLOAD_DIR / "library.json"
 
 def load_library_db():
     if LIBRARY_JSON_PATH.exists():
@@ -238,7 +242,7 @@ def scan_downloads(download_dir_str=None):
     if download_dir_str:
         base_dir = Path(download_dir_str).resolve()
     else:
-        base_dir = Path("downloads").resolve()
+        base_dir = BASE_DOWNLOAD_DIR.resolve()
 
     if not base_dir.exists():
         return results
@@ -292,7 +296,7 @@ def index():
 @app.route("/downloads/<path:filename>")
 def serve_download(filename):
     """Serve completed files directly so they can be played in browser."""
-    return send_from_directory("downloads", filename)
+    return send_from_directory(str(BASE_DOWNLOAD_DIR.resolve()), filename)
 
 
 def _extract_host(source):
@@ -418,7 +422,7 @@ def api_download():
     if download_dir:
         output_dir = Path(download_dir)
     else:
-        output_dir = Path("downloads")
+        output_dir = BASE_DOWNLOAD_DIR
     
     proxy = data.get("proxy", "").strip() or None
     
