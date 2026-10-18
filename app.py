@@ -1081,5 +1081,7 @@ def ensure_worker_started():
 ensure_worker_started()
 
 if __name__ == "__main__":
-    print("UniGrab Web Server starting on http://127.0.0.1:5000")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    is_cloud = bool(os.environ.get("RENDER") or os.environ.get("PORT"))
+    print(f"UniGrab Web Server starting on http://0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port, debug=not is_cloud)
