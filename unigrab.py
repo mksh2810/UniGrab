@@ -1927,12 +1927,7 @@ class YtDlpDownloader:
                         is_bot = any(t in err_lower for t in ["sign in to confirm", "not a bot", "bot", "captcha"])
                         is_yt = YtDlpMetadataResolver._is_youtube_host(track.source_url or "") or (track.platform in {"youtube.com", "youtu.be", "music.youtube.com"})
                         if is_bot and is_yt:
-                            print(f"[Download] YouTube bot challenge encountered ({dl_exc}). Retrying clean...")
-                            options.cookies_file = None
-                            options.proxy = None
-                            retry_cmd = self.build_command(track, options, index=index, output_dir=output_dir)
-                            result.command = retry_cmd
-                            result.output_path = self._run(retry_cmd, reporter=reporter, index=index, total_tracks=len(tracks))
+                            raise
                         elif any(t in err_lower for t in conn_terms) and not is_yt:
                             print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
                             AutoProxyResolver.invalidate_proxy()
