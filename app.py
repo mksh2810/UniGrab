@@ -52,6 +52,11 @@ active_processes_lock = threading.Lock()
 tasks = {}
 tasks_lock = threading.Lock()
 
+# In-memory resolution cache for high-concurrency traffic
+RESOLVE_CACHE = {}
+RESOLVE_CACHE_LOCK = threading.Lock()
+RESOLVE_CACHE_TTL = 300  # 5 minutes
+
 # Ensure downloads folders exist (use /tmp on Vercel for serverless writable storage)
 IS_VERCEL = bool(os.environ.get("VERCEL"))
 BASE_DOWNLOAD_DIR = Path("/tmp/downloads") if IS_VERCEL else (BASE_DIR / "downloads")
@@ -97,7 +102,11 @@ def save_tasks_db(all_tasks):
         import json
         TASKS_JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
         serialized = {}
-        for tid, t in all_tasks.items():
+        # Keep only latest 100 tasks on disk to prevent unbounded growth under heavy traffic
+        items = list(all_tasks.items())
+        if len(items) > 100:
+            items = items[-100:]
+        for tid, t in items:
             serialized[tid] = {
                 k: v for k, v in t.items()
                 if k not in ("process",)
@@ -375,6 +384,14 @@ def api_resolve():
     proxy = data.get("proxy", "").strip() or None
     cookies = get_cookies_file(data.get("cookies", "").strip() or None, source_url=source)
     
+    # Check cache for fast sub-millisecond response
+    cache_key = f"{source}:{mode}:{proxy or ''}:{cookies or ''}"
+    now = time.time()
+    with RESOLVE_CACHE_LOCK:
+        cached = RESOLVE_CACHE.get(cache_key)
+        if cached and (now - cached["time"] < RESOLVE_CACHE_TTL):
+            return jsonify(cached["data"])
+
     try:
         registry = ResolverRegistry(media_type=media_type)
         resolved = registry.resolve(source, proxy=proxy, cookies=cookies)
@@ -392,7 +409,7 @@ def api_resolve():
                 if total_dur > 0:
                     duration_seconds = total_dur
 
-        return jsonify({
+        resp_payload = {
             "source": resolved.source,
             "kind": resolved.kind,
             "platform": resolved.platform,
@@ -402,7 +419,14 @@ def api_resolve():
             "duration_seconds": duration_seconds,
             "available_resolutions": available_resolutions,
             "is_adult": is_adult_site(source)
-        })
+        }
+
+        with RESOLVE_CACHE_LOCK:
+            if len(RESOLVE_CACHE) > 500:
+                RESOLVE_CACHE.clear()
+            RESOLVE_CACHE[cache_key] = {"data": resp_payload, "time": now, "resolved": resolved}
+
+        return jsonify(resp_payload)
     except UniGrabError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
@@ -414,6 +438,7 @@ def api_download():
     data = request.json or {}
     source = data.get("source", "").strip()
     mode = data.get("mode", "m") # m or v
+    session_id = data.get("session_id", "").strip() or None
     
     if not source:
         return jsonify({"error": "Source link is required"}), 400
@@ -481,8 +506,17 @@ def api_download():
     proxy = data.get("proxy", "").strip() or None
     
     try:
-        registry = ResolverRegistry(media_type=media_type)
-        resolved = registry.resolve(source, proxy=proxy, cookies=cookies)
+        # Re-use resolved object from cache if available to start download instantly
+        resolved = None
+        cache_key = f"{source}:{mode}:{proxy or ''}:{cookies or ''}"
+        with RESOLVE_CACHE_LOCK:
+            cached = RESOLVE_CACHE.get(cache_key)
+            if cached and cached.get("resolved"):
+                resolved = cached["resolved"]
+
+        if not resolved:
+            registry = ResolverRegistry(media_type=media_type)
+            resolved = registry.resolve(source, proxy=proxy, cookies=cookies)
         
         options = DownloadOptions(
             audio_format=audio_format,
@@ -510,6 +544,7 @@ def api_download():
         with tasks_lock:
             tasks[task_id] = {
                 "task_id": task_id,
+                "session_id": session_id,
                 "status": "pending",
                 "source": source,
                 "title": resolved.title or source,
@@ -554,11 +589,15 @@ def api_status(task_id):
 
 @app.route("/api/tasks", methods=["GET"])
 def api_get_tasks():
+    session_id = request.args.get("session_id", "").strip() or None
     with tasks_lock:
         disk_tasks = load_tasks_db()
         for tid, t in disk_tasks.items():
             if tid not in tasks:
                 tasks[tid] = t
+        if session_id:
+            filtered = {tid: t for tid, t in tasks.items() if t.get("session_id") == session_id}
+            return jsonify(filtered)
         return jsonify(tasks)
 
 
@@ -829,6 +868,7 @@ def api_formats():
     })
 
 
+MAX_CONCURRENT_DOWNLOADS = int(os.environ.get("MAX_CONCURRENT_DOWNLOADS", "6"))
 active_task_threads = {}
 active_threads_lock = threading.Lock()
 
@@ -860,8 +900,8 @@ def download_worker():
                         t["logs"].append("[error] Download interrupted unexpectedly.")
                         save_tasks_db(tasks)
 
-            # Support concurrent downloads (up to 2 parallel tasks)
-            if active_count < 2:
+            # Support concurrent downloads (up to MAX_CONCURRENT_DOWNLOADS parallel tasks)
+            if active_count < MAX_CONCURRENT_DOWNLOADS:
                 try:
                     task_id, resolved, options = download_queue.get(timeout=0.5)
                 except queue.Empty:

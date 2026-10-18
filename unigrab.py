@@ -935,6 +935,15 @@ class YtDlpMetadataResolver:
         return is_url(source) and not SpotifyResolver.is_spotify(source) and not AppleMusicResolver.is_apple(source)
 
     def resolve(self, source: str, proxy: str | None = None, cookies: str | None = None) -> ResolvedSource:
+        # Fast path: YouTube single video (instant 0.2s JSON resolve without subprocess)
+        if self._is_youtube_single(source) and not proxy and not cookies:
+            try:
+                fast = self._resolve_youtube_fast(source)
+                if fast:
+                    return fast
+            except Exception as e:
+                print(f"[Resolver] Fast YouTube resolve skipped ({e}), falling back to standard resolver.")
+
         metadata_source = self._single_video_url(source) if self._is_youtube_single(source) else source
         playlist_args = ["--flat-playlist"] if self._is_explicit_playlist(source) else ["--no-playlist"]
         
@@ -1034,6 +1043,42 @@ class YtDlpMetadataResolver:
             platform=hostname(metadata_source) or "yt-dlp",
             title=info.get("title"),
             tracks=[self._track_from_yt_info(info, metadata_source)],
+        )
+
+    @classmethod
+    def _resolve_youtube_fast(cls, source: str) -> ResolvedSource | None:
+        meta = cls._youtube_innertube_metadata(source)
+        if not meta or not meta.get("title"):
+            return None
+        title = meta["title"]
+        artist = meta.get("artist")
+        duration = meta.get("duration")
+        thumbnail = meta.get("thumbnail") or meta.get("thumbnail_url")
+        vid = cls._extract_youtube_video_id(source)
+        return ResolvedSource(
+            source=source,
+            kind="track",
+            platform=hostname(source) or "youtube.com",
+            title=title,
+            tracks=[
+                Track(
+                    title=title,
+                    artist=artist,
+                    album=None,
+                    duration_seconds=duration,
+                    source_url=source,
+                    platform=hostname(source) or "youtube.com",
+                    metadata={
+                        "id": vid,
+                        "artists": [artist] if artist else [],
+                        "thumbnail": thumbnail,
+                        "thumbnail_url": thumbnail,
+                        "duration_seconds": duration,
+                        "available_resolutions": ["1080p", "720p", "480p", "360p", "240p", "144p"],
+                        "metadata_source": "innertube_fast",
+                    },
+                )
+            ],
         )
 
     @staticmethod
@@ -1759,9 +1804,8 @@ class DownloadReporter(Protocol):
 class YtDlpDownloader:
     def download(self, resolved: ResolvedSource, options: DownloadOptions, reporter: DownloadReporter | None = None) -> list[DownloadResult]:
         self._validate_options(options)
-        # Auto-inherit the working proxy from the metadata resolution phase
-        # if the caller didn't explicitly specify one.
-        if not options.proxy and AutoProxyResolver._working_proxy:
+        # Auto-inherit the working proxy only for adult / blocked sites, never for YouTube
+        if not options.proxy and AutoProxyResolver._working_proxy and not YtDlpMetadataResolver._is_youtube_host(resolved.source):
             options.proxy = AutoProxyResolver._working_proxy
             print(f"[Download] Using auto-resolved proxy: {options.proxy}")
         elif not options.proxy and is_adult_site(resolved.source):
@@ -1791,31 +1835,38 @@ class YtDlpDownloader:
                 try:
                     result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
                 except UniGrabError as dl_exc:
-                    # If the download failed with a connection/access error, try once with AutoProxyResolver.
                     err_lower = str(dl_exc).lower()
-                    conn_terms = [
-                        "10054", "104", "111", "connection reset", "connection aborted", 
-                        "connection refused", "transport error", "timed out", "timeout", 
-                        "remote end closed", "recv failure", "errno", "403", "forbidden", 
-                        "unable to download webpage", "http error",
-                        "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", 
-                        "confirm you’re not a bot", "captcha"
-                    ]
-                    if any(t in err_lower for t in conn_terms):
-                        print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
-                        AutoProxyResolver.invalidate_proxy()
-                        auto_proxy = AutoProxyResolver.get_proxy(
-                            target_url=track.source_url, force_refresh=True
-                        )
-                        if auto_proxy:
-                            options.proxy = auto_proxy
-                            command = self.build_command(track, options, index=index, output_dir=output_dir)
-                            result.command = command
-                            result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                    # If proxy failed with CONNECT aborted or curl: (56) or tunnel error, drop proxy immediately and retry directly
+                    if options.proxy and any(term in err_lower for term in ["proxy", "56", "connect aborted", "tunnel", "failed to perform, curl"]):
+                        print(f"[Download] Proxy error ({dl_exc}), retrying directly without proxy...")
+                        options.proxy = None
+                        command = self.build_command(track, options, index=index, output_dir=output_dir)
+                        result.command = command
+                        result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                    else:
+                        conn_terms = [
+                            "10054", "104", "111", "connection reset", "connection aborted", 
+                            "connection refused", "transport error", "timed out", "timeout", 
+                            "remote end closed", "recv failure", "errno", "403", "forbidden", 
+                            "unable to download webpage", "http error",
+                            "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", 
+                            "confirm you’re not a bot", "captcha"
+                        ]
+                        if any(t in err_lower for t in conn_terms) and not YtDlpMetadataResolver._is_youtube_host(track.source_url or ""):
+                            print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
+                            AutoProxyResolver.invalidate_proxy()
+                            auto_proxy = AutoProxyResolver.get_proxy(
+                                target_url=track.source_url, force_refresh=True
+                            )
+                            if auto_proxy:
+                                options.proxy = auto_proxy
+                                command = self.build_command(track, options, index=index, output_dir=output_dir)
+                                result.command = command
+                                result.output_path = self._run(command, reporter=reporter, index=index, total_tracks=len(tracks))
+                            else:
+                                raise
                         else:
                             raise
-                    else:
-                        raise
                 self._tag_file(result.output_path, track)
                 if options.media_type == "video":
                     self._download_subtitles(track, options, output_dir, index)

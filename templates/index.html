@@ -599,6 +599,15 @@
             startGlobalPolling();
         });
         
+        function getSessionId() {
+            let sid = localStorage.getItem('unigrab_session_id');
+            if (!sid) {
+                sid = 'sess_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+                localStorage.setItem('unigrab_session_id', sid);
+            }
+            return sid;
+        }
+
         function setCookieBrowser(name) {
             const input = document.getElementById('settings-cookies');
             input.value = name;
@@ -1138,7 +1147,8 @@
                 subtitles: options.subtitles || false,
                 download_dir: localStorage.getItem('unigrab_download_dir') || '',
                 cookies: cookiesPath,
-                proxy: proxy
+                proxy: proxy,
+                session_id: getSessionId()
             };
 
             try {
@@ -1191,12 +1201,20 @@
             if (globalPollInterval) return;
             globalPollInterval = setInterval(async () => {
                 try {
-                    const response = await fetch('/api/tasks');
+                    const response = await fetch(`/api/tasks?session_id=${encodeURIComponent(getSessionId())}`);
                     if (!response.ok) return;
                     const allTasks = await response.json();
                     
                     const activeTasksList = document.getElementById('active-tasks-list');
                     let hasActive = false;
+
+                    // Remove any cards that do not belong to this session
+                    Array.from(activeTasksList.children).forEach(child => {
+                        const m = child.id && child.id.match(/^task-card-(.+)$/);
+                        if (m && !allTasks[m[1]]) {
+                            child.remove();
+                        }
+                    });
                     
                     // Filter down to only non-completed, non-failed tasks
                     let activeKeys = Object.keys(allTasks).filter(tid => 
