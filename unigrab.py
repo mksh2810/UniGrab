@@ -249,6 +249,9 @@ def get_cookies_file(specified_cookies: str | None = None, source_url: str | Non
     env_cookies = os.environ.get("UNIGRAB_COOKIES")
     if env_cookies:
         return env_cookies
+    # Prebuilt adult cookies are only for adult sites, never YouTube
+    if source_url and YtDlpMetadataResolver._is_youtube_host(source_url):
+        return None
     try:
         return ensure_prebuilt_cookies(source_url)
     except Exception:
@@ -984,6 +987,8 @@ class YtDlpMetadataResolver:
             ]
             if use_impersonate and is_impersonate_available():
                 resolve_args.extend(["--impersonate", "chrome"])
+            if self._is_youtube_host(metadata_source):
+                resolve_args.extend(["--extractor-args", "youtube:player_client=android,web"])
             if prx:
                 resolve_args.extend(["--proxy", prx])
             if cookies:
@@ -1858,7 +1863,19 @@ class YtDlpDownloader:
                             "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", 
                             "confirm you’re not a bot", "captcha"
                         ]
-                        if any(t in err_lower for t in conn_terms) and not YtDlpMetadataResolver._is_youtube_host(track.source_url or ""):
+                        is_bot = any(t in err_lower for t in ["sign in to confirm", "not a bot", "bot", "captcha"])
+                        is_yt = YtDlpMetadataResolver._is_youtube_host(track.source_url or "") or (track.platform in {"youtube.com", "youtu.be", "music.youtube.com"})
+                        if is_bot and is_yt:
+                            print(f"[Download] YouTube bot challenge encountered ({dl_exc}). Retrying with mobile player client...")
+                            options.cookies_file = None
+                            options.proxy = None
+                            retry_cmd = self.build_command(track, options, index=index, output_dir=output_dir)
+                            for ci, c_arg in enumerate(retry_cmd):
+                                if "player_client=" in c_arg:
+                                    retry_cmd[ci] = "youtube:player_client=ios,mweb,android"
+                            result.command = retry_cmd
+                            result.output_path = self._run(retry_cmd, reporter=reporter, index=index, total_tracks=len(tracks))
+                        elif any(t in err_lower for t in conn_terms) and not is_yt:
                             print(f"[Download] Connection/Access error ({dl_exc}), retrying track with auto-proxy...")
                             AutoProxyResolver.invalidate_proxy()
                             auto_proxy = AutoProxyResolver.get_proxy(
@@ -1915,6 +1932,9 @@ class YtDlpDownloader:
         ]
         if is_impersonate_available():
             args.extend(["--impersonate", "chrome"])
+
+        if YtDlpMetadataResolver._is_youtube_host(target) or track.platform in {"youtube.com", "youtu.be", "music.youtube.com"}:
+            args.extend(["--extractor-args", "youtube:player_client=android,web"])
 
         # Proxy support — use the proxy that worked during metadata resolution
         if options.proxy:
