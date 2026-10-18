@@ -318,16 +318,8 @@ class DownloadService : Service() {
                 val isRestricted = DownloadManager.isRestrictedSite(host)
                 val maxAttempts = if (isRestricted) 5 else 3
 
-                // Auto-resolve a proxy for restricted/banned sites if no proxy configured
-                if (isRestricted && currentProxy.isNullOrBlank()) {
-                    val resolvedProxy = AutoProxyResolver.getProxy(url, forceRefresh = false)
-                    if (resolvedProxy != null) {
-                        currentProxy = resolvedProxy
-                        serviceScope.launch {
-                            repository.insertLog(taskId, "Auto-proxy enabled for restricted site")
-                        }
-                    }
-                }
+                // Try direct first (supports VPNs/unblocked DNS); if blocked, fallback to verified HTTP proxy
+
 
                 // Only embed thumbnail initially if it's a known direct host to prevent KeyError: 'streams'
                 val shouldEmbedThumbnailInitially = embedThumbnail && isDirectHost
@@ -396,8 +388,10 @@ class DownloadService : Service() {
                             serviceScope.launch {
                                 repository.insertLog(taskId, "Error: $errMessage. Rotating proxy (Attempt $attempt/$maxAttempts)...")
                             }
-                            AutoProxyResolver.invalidateCurrent()
-                            val resolvedProxy = AutoProxyResolver.getProxy(url, forceRefresh = true)
+                            if (!currentProxy.isNullOrBlank()) {
+                                AutoProxyResolver.invalidateCurrent()
+                            }
+                            val resolvedProxy = AutoProxyResolver.getProxy(url, forceRefresh = !currentProxy.isNullOrBlank())
                             if (resolvedProxy != null) {
                                 currentProxy = resolvedProxy
                                 attempt++

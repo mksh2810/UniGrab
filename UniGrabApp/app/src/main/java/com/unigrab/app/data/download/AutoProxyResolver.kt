@@ -29,27 +29,18 @@ object AutoProxyResolver {
     private enum class SourceType { PLAIN_TEXT, GEONODE_JSON, PROXYSCRAPE_JSON }
 
     private val PROXY_SOURCES = listOf(
-        // JSON APIs with pre-verified proxies (highest quality)
-        ProxySource(
-            "https://proxylist.geonode.com/api/proxy-list?limit=100&page=1&sort_by=lastChecked&sort_type=desc&protocols=socks5&speed=fast&country=US&country=CA&country=GB&country=DE&country=FR&country=NL&country=SG&country=JP",
-            SourceType.GEONODE_JSON, "socks5"
-        ),
+        // HTTP/HTTPS proxies (prevents SOCKS5 2-bytes-missing truncation errors on mobile)
         ProxySource(
             "https://proxylist.geonode.com/api/proxy-list?limit=100&page=1&sort_by=lastChecked&sort_type=desc&protocols=http%2Chttps&speed=fast&country=US&country=CA&country=GB&country=DE&country=FR&country=NL&country=SG&country=JP",
             SourceType.GEONODE_JSON, "http"
         ),
         ProxySource(
-            "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=json&limit=100&timeout=5000&country=us,ca,gb,de,fr,nl,sg,jp",
-            SourceType.PROXYSCRAPE_JSON
-        ),
-        // Plain text lists (fallback)
-        ProxySource(
-            "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=socks5&timeout=5000&country=us,ca,gb,de,fr,nl,sg,jp",
-            SourceType.PLAIN_TEXT, "socks5"
-        ),
-        ProxySource(
             "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=us,ca,gb,de,fr,nl,sg,jp",
             SourceType.PLAIN_TEXT, "http"
+        ),
+        ProxySource(
+            "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=protocolipport&format=json&limit=100&timeout=5000&country=us,ca,gb,de,fr,nl,sg,jp",
+            SourceType.PROXYSCRAPE_JSON
         )
     )
 

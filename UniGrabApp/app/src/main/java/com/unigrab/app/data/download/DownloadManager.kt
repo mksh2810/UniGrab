@@ -328,6 +328,9 @@ class DownloadManager(
             request.addOption("--add-header", "Sec-Fetch-Dest:document")
             request.addOption("--add-header", "Sec-Fetch-Mode:navigate")
             request.addOption("--add-header", "Sec-Fetch-Site:none")
+            request.addOption("--add-header", "Cookie: age_verified=1; accessPH=1")
+            request.addOption("--force-ipv4")
+            request.addOption("--socket-timeout", "30")
             if (host != null) {
                 val clean = host.removePrefix("www.")
                 request.addOption("--referer", "https://www.$clean/")
@@ -342,7 +345,7 @@ class DownloadManager(
                 "10054", "104", "111",
                 "connection reset", "connection aborted", "connection refused",
                 "transport error", "timed out", "timeout", "recv failure",
-                "remote end closed", "errno",
+                "remote end closed", "errno", "bytes missing", "eof",
                 "403", "forbidden", "unable to download webpage"
             )
             return terms.any { msg.contains(it) }
@@ -363,16 +366,8 @@ class DownloadManager(
         val host = try { java.net.URL(cleanedUrl).host?.lowercase()?.removePrefix("www.") } catch (e: Exception) { null }
         val isRestricted = isRestrictedSite(host)
 
-        // More attempts for restricted sites since free proxies are unreliable
+        // Try direct first (works with VPN / unblocked DNS); fallback to verified HTTP proxy if ISP blocks
         val maxAttempts = if (isRestricted) 5 else 3
-
-        // Auto-resolve a proxy for restricted sites if none provided
-        if (isRestricted && currentProxy.isNullOrBlank()) {
-            val resolvedProxy = AutoProxyResolver.getProxy(cleanedUrl, forceRefresh = false)
-            if (resolvedProxy != null) {
-                currentProxy = resolvedProxy
-            }
-        }
 
         while (!success && attempt <= maxAttempts) {
             try {
@@ -401,9 +396,10 @@ class DownloadManager(
                 val isRetryable = isRetryableError(errMessage)
                 
                 if (isRetryable && attempt < maxAttempts) {
-                    // Invalidate the proxy that just failed before getting a new one
-                    AutoProxyResolver.invalidateCurrent()
-                    val resolvedProxy = AutoProxyResolver.getProxy(cleanedUrl, forceRefresh = true)
+                    if (!currentProxy.isNullOrBlank()) {
+                        AutoProxyResolver.invalidateCurrent()
+                    }
+                    val resolvedProxy = AutoProxyResolver.getProxy(cleanedUrl, forceRefresh = !currentProxy.isNullOrBlank())
                     if (resolvedProxy != null) {
                         currentProxy = resolvedProxy
                         attempt++
