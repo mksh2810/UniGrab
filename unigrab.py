@@ -1819,6 +1819,21 @@ VIDEO_QUALITY_HEIGHTS = {
 }
 
 
+def is_termux() -> bool:
+    return bool(os.environ.get("TERMUX_VERSION")) or Path("/data/data/com.termux").exists()
+
+def get_default_download_dir() -> Path:
+    if is_termux():
+        shared = Path.home() / "storage" / "shared"
+        if shared.exists():
+            return shared / "Download" / "UniGrab"
+        if Path("/sdcard/Download").exists():
+            return Path("/sdcard/Download/UniGrab")
+        if Path("/sdcard").exists():
+            return Path("/sdcard/UniGrab")
+    return Path("downloads")
+
+
 @dataclass(slots=True)
 class DownloadOptions:
     media_type: str = "music"
@@ -1826,7 +1841,7 @@ class DownloadOptions:
     video_format: str = "mp4"
     quality: str = "best"
     video_quality: str = "best"
-    output_dir: Path = Path("downloads")
+    output_dir: Path = field(default_factory=get_default_download_dir)
     limit: int | None = None
     direct: bool = False
     dry_run: bool = False
@@ -1941,6 +1956,11 @@ class YtDlpDownloader:
                 if options.media_type == "video":
                     self._download_subtitles(track, options, output_dir, index)
                 self._burn_subtitles(result.output_path, options)
+                if result.output_path and shutil.which("termux-media-scan"):
+                    try:
+                        subprocess.run(["termux-media-scan", str(result.output_path)], capture_output=True, timeout=5)
+                    except Exception:
+                        pass
             if reporter:
                 reporter.finish_track(result, index, len(tracks))
             results.append(result)
@@ -2562,7 +2582,7 @@ def interactive() -> int:
             print_interactive_metadata(resolved, media_type)
             options = DownloadOptions(
                 media_type=media_type,
-                output_dir=Path("downloads"),
+                output_dir=get_default_download_dir(),
                 cookies_file=os.environ.get("UNIGRAB_COOKIES"),
             )
             reporter = ReferenceDownloadReporter(options)
@@ -2682,7 +2702,7 @@ def build_parser() -> argparse.ArgumentParser:
     download_parser.add_argument("--video-format", default="mp4", choices=sorted(SUPPORTED_VIDEO_FORMATS), help="Output video container.")
     download_parser.add_argument("--quality", default="best", choices=list(QUALITY_VALUES), help="Audio conversion quality.")
     download_parser.add_argument("--video-quality", default="best", choices=list(VIDEO_QUALITY_HEIGHTS), help="Video quality: 144p to 8k, or 'best' for highest available.")
-    download_parser.add_argument("--out", default="downloads", help="Output directory.")
+    download_parser.add_argument("--out", default=None, help="Output directory.")
     download_parser.add_argument("--limit", type=int, help="Limit playlist/album downloads.")
     download_parser.add_argument("--direct", action="store_true", help="Download the resolved source URL directly instead of searching.")
     download_parser.add_argument("--dry-run", action="store_true", help="Preview the download command without running it.")
@@ -2723,7 +2743,7 @@ def download(args: argparse.Namespace) -> int:
         media_type=media_type,
         quality=args.quality,
         video_quality=args.video_quality,
-        output_dir=Path(args.out),
+        output_dir=Path(args.out) if args.out else get_default_download_dir(),
         limit=args.limit,
         direct=args.direct,
         dry_run=args.dry_run,
