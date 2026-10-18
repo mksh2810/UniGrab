@@ -243,13 +243,53 @@ def ensure_prebuilt_cookies(source_url: str | None = None) -> str:
         path.write_text("\n".join(content) + "\n", encoding="utf-8")
     return str(path.resolve())
 
+def ensure_environment_cookies() -> str | None:
+    cookie_content = (
+        os.environ.get("YOUTUBE_COOKIES") or 
+        os.environ.get("COOKIES_TEXT") or 
+        os.environ.get("COOKIES_CONTENT")
+    )
+    if not cookie_content or len(cookie_content.strip()) < 10:
+        return None
+    target = Path("/tmp/downloads/user_cookies.txt") if os.environ.get("VERCEL") else (Path.cwd() / "downloads" / "user_cookies.txt")
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        lines = []
+        for line in cookie_content.strip().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("#"):
+                lines.append(line)
+                continue
+            parts = re.split(r"\t+|\s{2,}", line)
+            if len(parts) >= 7:
+                lines.append("\t".join(parts[:7]))
+            elif "\t" in line:
+                lines.append(line)
+            else:
+                p = line.split()
+                if len(p) >= 7:
+                    domain, flag, path, secure, exp, name = p[:6]
+                    val = " ".join(p[6:])
+                    lines.append("\t".join([domain, flag, path, secure, exp, name, val]))
+                else:
+                    lines.append(line)
+        target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return str(target.resolve())
+    except Exception:
+        return None
+
 def get_cookies_file(specified_cookies: str | None = None, source_url: str | None = None) -> str | None:
-    if specified_cookies:
+    # 1. If explicitly a valid local file path that exists, return it
+    if specified_cookies and Path(specified_cookies).exists():
         return specified_cookies
-    env_cookies = os.environ.get("UNIGRAB_COOKIES") or os.environ.get("YOUTUBE_COOKIES_FILE")
-    if env_cookies and Path(env_cookies).exists():
-        return env_cookies
-    # Check uploaded or environment user cookies on server
+
+    # 2. Check uploaded or environment user cookies on server (always valid for serverless/cloud)
+    env_target = ensure_environment_cookies()
+    if env_target:
+        return env_target
+
     for candidate in [
         Path("/tmp/downloads/user_cookies.txt"),
         Path.cwd() / "downloads" / "user_cookies.txt",
@@ -260,7 +300,17 @@ def get_cookies_file(specified_cookies: str | None = None, source_url: str | Non
                 return str(candidate.resolve())
         except Exception:
             pass
-    # Prebuilt adult cookies are only for adult sites, never YouTube
+
+    # 3. If running locally with an installed browser name (chrome, firefox, edge, etc.)
+    if specified_cookies and specified_cookies.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
+        return specified_cookies.lower()
+
+    # 4. Check environment cookies file
+    env_cookies = os.environ.get("UNIGRAB_COOKIES") or os.environ.get("YOUTUBE_COOKIES_FILE")
+    if env_cookies and Path(env_cookies).exists():
+        return env_cookies
+
+    # 5. Prebuilt adult cookies are only for adult sites, never YouTube
     if source_url and YtDlpMetadataResolver._is_youtube_host(source_url):
         return None
     try:

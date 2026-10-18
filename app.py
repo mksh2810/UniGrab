@@ -66,6 +66,31 @@ BASE_DOWNLOAD_DIR = Path("/tmp/downloads") if IS_VERCEL else (BASE_DIR / "downlo
 LIBRARY_JSON_PATH = BASE_DOWNLOAD_DIR / "library.json"
 UPLOADED_COOKIES_PATH = BASE_DOWNLOAD_DIR / "user_cookies.txt"
 
+def normalize_netscape_cookies(content: str) -> str:
+    """Ensure cookie lines are properly tab-separated even if copied with spaces."""
+    lines = []
+    for line in content.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            lines.append(line)
+            continue
+        parts = re.split(r"\t+|\s{2,}", line)
+        if len(parts) >= 7:
+            lines.append("\t".join(parts[:7]))
+        elif "\t" in line:
+            lines.append(line)
+        else:
+            p = line.split()
+            if len(p) >= 7:
+                domain, flag, path, secure, exp, name = p[:6]
+                val = " ".join(p[6:])
+                lines.append("\t".join([domain, flag, path, secure, exp, name, val]))
+            else:
+                lines.append(line)
+    return "\n".join(lines)
+
 def init_environment_cookies():
     cookie_content = (
         os.environ.get("YOUTUBE_COOKIES") or 
@@ -75,8 +100,9 @@ def init_environment_cookies():
     if cookie_content and len(cookie_content.strip()) > 10:
         try:
             UPLOADED_COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
+            normalized = normalize_netscape_cookies(cookie_content.strip())
             with open(UPLOADED_COOKIES_PATH, "w", encoding="utf-8") as f:
-                f.write(cookie_content.strip() + "\n")
+                f.write(normalized + "\n")
             print(f"[Cookies] Successfully loaded environment cookies into {UPLOADED_COOKIES_PATH}")
         except Exception as e:
             print(f"[Cookies] Failed to save environment cookies: {e}")
@@ -689,8 +715,9 @@ def api_upload_cookies():
 
     try:
         UPLOADED_COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        normalized = normalize_netscape_cookies(content)
         with open(UPLOADED_COOKIES_PATH, "w", encoding="utf-8") as f:
-            f.write(content + "\n")
+            f.write(normalized + "\n")
         return jsonify({
             "success": True, 
             "message": "Cookies saved successfully to server!", 
