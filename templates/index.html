@@ -1196,6 +1196,7 @@
 
         // Active Task Tracking
         let globalPollInterval = null;
+        const handledCompletedTasks = new Set();
 
         function startGlobalPolling() {
             if (globalPollInterval) return;
@@ -1264,10 +1265,9 @@
                                 updateTerminalLogs(task.logs);
                             }
                         } else if (task.status === 'completed') {
-                            const card = document.getElementById(`task-card-${tid}`);
-                            if (card && !card.dataset.completedHandled) {
-                                card.dataset.completedHandled = "true";
-                                showToast(`Finished: ${task.title}. Downloading to device...`, 'success');
+                            if (!handledCompletedTasks.has(tid)) {
+                                handledCompletedTasks.add(tid);
+                                showToast(`Finished: ${task.title}. Saving to your device...`, 'success');
                                 fetchLibrary();
                                 
                                 // Auto-trigger browser download to the user's physical device
@@ -1278,8 +1278,11 @@
                                         }
                                     });
                                 }
-                                
-                                // Keep showing card as success with download button for 6 seconds then remove
+                            }
+
+                            const card = document.getElementById(`task-card-${tid}`);
+                            if (card && !card.dataset.completedHandled) {
+                                card.dataset.completedHandled = "true";
                                 const statusLabelEl = card.querySelector('.task-status-label');
                                 if (statusLabelEl) statusLabelEl.innerText = "Downloaded";
                                 setTimeout(() => removeActiveTaskUI(tid), 6000);
@@ -1452,7 +1455,7 @@
         async function fetchLibrary() {
             try {
                 const customDir = localStorage.getItem('unigrab_download_dir') || '';
-                const response = await fetch(`/api/library?download_dir=${encodeURIComponent(customDir)}`);
+                const response = await fetch(`/api/library?download_dir=${encodeURIComponent(customDir)}&session_id=${encodeURIComponent(getSessionId())}`);
                 const data = await response.json();
                 if (response.ok) {
                     completedLibrary = data.files;

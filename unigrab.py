@@ -936,7 +936,7 @@ class YtDlpMetadataResolver:
 
     def resolve(self, source: str, proxy: str | None = None, cookies: str | None = None) -> ResolvedSource:
         # Fast path: YouTube single video (instant 0.2s JSON resolve without subprocess)
-        if self._is_youtube_single(source) and not proxy and not cookies:
+        if self._is_youtube_single(source):
             try:
                 fast = self._resolve_youtube_fast(source)
                 if fast:
@@ -1011,7 +1011,8 @@ class YtDlpMetadataResolver:
                 "sign in to confirm", "not a bot", "bot", "confirm you're not a bot", "confirm you’re not a bot", "captcha"
             ])
             
-            if is_conn_error and not proxy:
+            # YouTube is blocked by public proxies; NEVER try AutoProxy for YouTube
+            if is_conn_error and not proxy and not self._is_youtube_host(metadata_source):
                 print(f"[AutoProxy] Connection/Access error detected ({exc}). Retrying with automatic proxy...")
                 AutoProxyResolver.invalidate_proxy()
                 try:
@@ -1049,14 +1050,19 @@ class YtDlpMetadataResolver:
     def _resolve_youtube_fast(cls, source: str) -> ResolvedSource | None:
         meta = cls._youtube_innertube_metadata(source)
         if not meta or not meta.get("title"):
+            meta = cls._youtube_oembed_metadata(source)
+        if not meta or not meta.get("title"):
             return None
         title = meta["title"]
         artist = meta.get("artist")
         duration = meta.get("duration")
         thumbnail = meta.get("thumbnail") or meta.get("thumbnail_url")
         vid = cls._extract_youtube_video_id(source)
+        canonical_source = f"https://www.youtube.com/watch?v={vid}" if vid else source
+        if not thumbnail and vid:
+            thumbnail = f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
         return ResolvedSource(
-            source=source,
+            source=canonical_source,
             kind="track",
             platform=hostname(source) or "youtube.com",
             title=title,
@@ -1066,7 +1072,7 @@ class YtDlpMetadataResolver:
                     artist=artist,
                     album=None,
                     duration_seconds=duration,
-                    source_url=source,
+                    source_url=canonical_source,
                     platform=hostname(source) or "youtube.com",
                     metadata={
                         "id": vid,
@@ -1075,7 +1081,7 @@ class YtDlpMetadataResolver:
                         "thumbnail_url": thumbnail,
                         "duration_seconds": duration,
                         "available_resolutions": ["1080p", "720p", "480p", "360p", "240p", "144p"],
-                        "metadata_source": "innertube_fast",
+                        "metadata_source": meta.get("metadata_source", "innertube_fast"),
                     },
                 )
             ],

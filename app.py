@@ -25,7 +25,7 @@ from unigrab import (
     ResolverRegistry, YtDlpDownloader, DownloadOptions, 
     Track, ResolvedSource, UniGrabError, doctor,
     SUPPORTED_FORMATS, SUPPORTED_VIDEO_FORMATS, QUALITY_VALUES, VIDEO_QUALITY_HEIGHTS,
-    is_adult_site, get_cookies_file
+    is_adult_site, get_cookies_file, YtDlpMetadataResolver
 )
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -239,7 +239,8 @@ class WebDownloadReporter:
                         "title": result.track.title,
                         "artist": result.track.artist or "Unknown",
                         "type": "music" if t.get("mode") == "m" else "video",
-                        "created_at": time.time()
+                        "created_at": time.time(),
+                        "session_id": t.get("session_id")
                     }
                     save_library_db(db)
                 save_tasks_db(tasks)
@@ -283,8 +284,8 @@ def run_download_thread(task_id, resolved, options):
             active_processes.pop(task_id, None)
 
 
-def scan_downloads(download_dir_str=None):
-    """Scans downloads folder recursively to return list of completed files."""
+def scan_downloads(download_dir_str=None, session_id=None):
+    """Scans downloads folder recursively to return list of completed files for the session."""
     results = []
     if download_dir_str:
         base_dir = Path(download_dir_str).resolve()
@@ -310,11 +311,18 @@ def scan_downloads(download_dir_str=None):
             try:
                 resolved_path = path.resolve()
                 filepath_str = str(resolved_path)
+                db_entry = db.get(filepath_str, {})
+                
+                # Strict session isolation
+                if session_id and db_entry.get("session_id") != session_id:
+                    continue
+                if not session_id and db_entry.get("session_id"):
+                    continue
+
                 file_type = "music" if resolved_path.suffix.lower() in audio_exts or "music" in resolved_path.parts else "video"
                 stat = resolved_path.stat()
                 web_path = f"/api/serve-media?path={urllib.parse.quote(filepath_str)}"
                 
-                db_entry = db.get(filepath_str, {})
                 thumbnail_url = db_entry.get("thumbnail_url")
                 
                 results.append({
@@ -424,7 +432,14 @@ def api_resolve():
         with RESOLVE_CACHE_LOCK:
             if len(RESOLVE_CACHE) > 500:
                 RESOLVE_CACHE.clear()
-            RESOLVE_CACHE[cache_key] = {"data": resp_payload, "time": now, "resolved": resolved}
+            entry = {"data": resp_payload, "time": now, "resolved": resolved}
+            RESOLVE_CACHE[cache_key] = entry
+            RESOLVE_CACHE[f"{source}:{mode}"] = entry
+            RESOLVE_CACHE[f"{resolved.source}:{mode}"] = entry
+            vid = YtDlpMetadataResolver._extract_youtube_video_id(source)
+            if vid:
+                RESOLVE_CACHE[f"yt:{vid}:{mode}"] = entry
+                RESOLVE_CACHE[f"yt:{vid}"] = entry
 
         return jsonify(resp_payload)
     except UniGrabError as e:
@@ -508,11 +523,21 @@ def api_download():
     try:
         # Re-use resolved object from cache if available to start download instantly
         resolved = None
-        cache_key = f"{source}:{mode}:{proxy or ''}:{cookies or ''}"
+        vid = YtDlpMetadataResolver._extract_youtube_video_id(source)
+        candidate_keys = [
+            f"{source}:{mode}:{proxy or ''}:{cookies or ''}",
+            f"{source}:{mode}",
+            f"{source}",
+        ]
+        if vid:
+            candidate_keys.extend([f"yt:{vid}:{mode}", f"yt:{vid}"])
+            
         with RESOLVE_CACHE_LOCK:
-            cached = RESOLVE_CACHE.get(cache_key)
-            if cached and cached.get("resolved"):
-                resolved = cached["resolved"]
+            for k in candidate_keys:
+                cached = RESOLVE_CACHE.get(k)
+                if cached and cached.get("resolved"):
+                    resolved = cached["resolved"]
+                    break
 
         if not resolved:
             registry = ResolverRegistry(media_type=media_type)
@@ -598,14 +623,15 @@ def api_get_tasks():
         if session_id:
             filtered = {tid: t for tid, t in tasks.items() if t.get("session_id") == session_id}
             return jsonify(filtered)
-        return jsonify(tasks)
+        return jsonify({})
 
 
 @app.route("/api/library", methods=["GET"])
 def api_library():
     download_dir = request.args.get("download_dir", "").strip()
+    session_id = request.args.get("session_id", "").strip() or None
     try:
-        files = scan_downloads(download_dir)
+        files = scan_downloads(download_dir, session_id=session_id)
         return jsonify({"files": files})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
