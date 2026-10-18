@@ -992,14 +992,14 @@ class YtDlpMetadataResolver:
                 "--socket-timeout", timeout,
                 "--no-check-certificates",
                 "--legacy-server-connect",
-                "--force-ipv4",
-                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-                "--referer", "https://www.google.com/",
-            ]
+                ]
+            if not self._is_youtube_host(metadata_source):
+                resolve_args.extend([
+                    "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+                    "--referer", "https://www.google.com/",
+                ])
             if use_impersonate and is_impersonate_available():
                 resolve_args.extend(["--impersonate", "chrome"])
-            if self._is_youtube_host(metadata_source):
-                resolve_args.extend(["--extractor-args", "youtube:player_client=android,ios;player_skip=webpage,configs"])
             if prx:
                 resolve_args.extend(["--proxy", prx])
             if cookies:
@@ -1877,13 +1877,10 @@ class YtDlpDownloader:
                         is_bot = any(t in err_lower for t in ["sign in to confirm", "not a bot", "bot", "captcha"])
                         is_yt = YtDlpMetadataResolver._is_youtube_host(track.source_url or "") or (track.platform in {"youtube.com", "youtu.be", "music.youtube.com"})
                         if is_bot and is_yt:
-                            print(f"[Download] YouTube bot challenge encountered ({dl_exc}). Retrying with direct mobile client...")
+                            print(f"[Download] YouTube bot challenge encountered ({dl_exc}). Retrying clean...")
                             options.cookies_file = None
                             options.proxy = None
                             retry_cmd = self.build_command(track, options, index=index, output_dir=output_dir)
-                            for ci, c_arg in enumerate(retry_cmd):
-                                if "player_client=" in c_arg:
-                                    retry_cmd[ci] = "youtube:player_client=android;player_skip=webpage,configs"
                             result.command = retry_cmd
                             result.output_path = self._run(retry_cmd, reporter=reporter, index=index, total_tracks=len(tracks))
                         elif any(t in err_lower for t in conn_terms) and not is_yt:
@@ -1915,6 +1912,7 @@ class YtDlpDownloader:
         target = self._target_for_track(track, options)
         stem = self._output_stem(track, index)
         output_template = str((output_dir or options.output_dir) / f"{stem}.%(ext)s")
+        is_yt = YtDlpMetadataResolver._is_youtube_host(target) or track.platform in {"youtube.com", "youtu.be", "music.youtube.com"}
 
         args = [
             *yt_dlp_command(required=not options.dry_run),
@@ -1935,17 +1933,18 @@ class YtDlpDownloader:
             "--no-check-certificates",
             "--legacy-server-connect",
             "--force-ipv4",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-            "--referer", "https://www.google.com/",
             "--retries", "5",
             "--fragment-retries", "5",
             "--socket-timeout", "30",
         ]
+        if not is_yt:
+            args.extend([
+                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+                "--referer", "https://www.google.com/",
+            ])
+
         if is_impersonate_available():
             args.extend(["--impersonate", "chrome"])
-
-        if YtDlpMetadataResolver._is_youtube_host(target) or track.platform in {"youtube.com", "youtu.be", "music.youtube.com"}:
-            args.extend(["--extractor-args", "youtube:player_client=android,ios;player_skip=webpage,configs"])
 
         # Proxy support — use the proxy that worked during metadata resolution
         if options.proxy:
