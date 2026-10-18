@@ -1,5 +1,8 @@
 name: Build UniGrab Android APK
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
