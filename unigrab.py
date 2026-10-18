@@ -251,9 +251,8 @@ def ensure_environment_cookies() -> str | None:
     )
     if not cookie_content or len(cookie_content.strip()) < 10:
         return None
-    target = Path("/tmp/downloads/user_cookies.txt") if os.environ.get("VERCEL") else (Path.cwd() / "downloads" / "user_cookies.txt")
+    target = Path.cwd() / "cookies.txt"
     try:
-        target.parent.mkdir(parents=True, exist_ok=True)
         lines = []
         for line in cookie_content.strip().splitlines():
             line = line.strip()
@@ -285,21 +284,22 @@ def get_cookies_file(specified_cookies: str | None = None, source_url: str | Non
     if specified_cookies and Path(specified_cookies).exists():
         return specified_cookies
 
-    # 2. Check uploaded or environment user cookies on server (always valid for serverless/cloud)
-    env_target = ensure_environment_cookies()
-    if env_target:
-        return env_target
-
+    # 2. Check local cookies.txt or ~/.unigrab/cookies.txt
     for candidate in [
-        Path("/tmp/downloads/user_cookies.txt"),
+        Path.cwd() / "cookies.txt",
+        Path.home() / ".unigrab" / "cookies.txt",
         Path.cwd() / "downloads" / "user_cookies.txt",
-        Path.home() / ".unigrab" / "user_cookies.txt"
     ]:
         try:
             if candidate.exists() and candidate.stat().st_size > 0:
                 return str(candidate.resolve())
         except Exception:
             pass
+
+    # 3. Check environment cookies text or file
+    env_target = ensure_environment_cookies()
+    if env_target:
+        return env_target
 
     # 3. If running locally with an installed browser name (chrome, firefox, edge, etc.)
     if specified_cookies and specified_cookies.lower() in ("chrome", "firefox", "edge", "opera", "safari", "vivaldi", "brave"):
@@ -478,24 +478,16 @@ def yt_dlp_command(*, required: bool = True) -> list[str]:
 
 def bundled_ffmpeg_path(*, required: bool = False) -> str | None:
     system_ffmpeg = shutil.which("ffmpeg")
+    if system_ffmpeg:
+        return system_ffmpeg
     try:
         import imageio_ffmpeg
-    except ImportError as exc:
-        if system_ffmpeg:
-            return system_ffmpeg
-        if required:
-            raise DependencyMissingError(
-                "Missing FFmpeg. Run `python -m pip install -r requirements.txt` from the project folder or install FFmpeg on PATH."
-            ) from exc
-        return None
-
-    try:
         return imageio_ffmpeg.get_ffmpeg_exe()
     except Exception as exc:
-        if system_ffmpeg:
-            return system_ffmpeg
         if required:
-            raise DependencyMissingError(f"FFmpeg is unavailable: {exc}") from exc
+            raise DependencyMissingError(
+                "Missing FFmpeg. Install FFmpeg on PATH (e.g. `pkg install ffmpeg` on Termux) or install imageio-ffmpeg."
+            ) from exc
         return None
 
 

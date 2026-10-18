@@ -1,6 +1,4 @@
-flask
 yt-dlp
+mutagen
 curl-cffi
 imageio-ffmpeg
-mutagen
-gunicorn

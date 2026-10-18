@@ -22,9 +22,28 @@ This project does not bypass DRM, subscriptions, paywalls, or platform access co
 - File names use only the media title; metadata is written into file tags when possible.
 - Uses `yt-dlp` and `imageio-ffmpeg` from `requirements.txt`.
 
-## Install
+## Installation
 
-```powershell
+### On Android (via Termux)
+1. Install [Termux from F-Droid](https://f-droid.org/en/packages/com.termux/).
+2. Open Termux and set up Python, Git, and FFmpeg:
+   ```bash
+   pkg update && pkg install python git ffmpeg -y
+   termux-setup-storage
+   ```
+3. Clone and install UniGrab:
+   ```bash
+   git clone https://github.com/mksh2810/UniGrab.git
+   cd UniGrab
+   pip install -r requirements.txt
+   ```
+4. Run UniGrab interactively:
+   ```bash
+   python unigrab.py
+   ```
+
+### On Windows / macOS / Linux
+```bash
 python -m pip install -r requirements.txt
 ```
 
