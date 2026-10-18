@@ -1,0 +1,65 @@
+name: Build UniGrab Android APK
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build UniGrab APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x gradlew
+        working-directory: UniGrabApp
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+        working-directory: UniGrabApp
+
+      - name: Rename APK for Release
+        run: |
+          mkdir -p release-output
+          cp UniGrabApp/app/build/outputs/apk/debug/*.apk release-output/UniGrab.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniGrab-APK
+          path: release-output/UniGrab.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "UniGrab Android App (Latest)"
+          body: |
+            ### UniGrab for Android 🚀
+            
+            Download and install **`UniGrab.apk`** directly on your Android phone!
+            
+            #### Features & Supported Platforms:
+            - **YouTube & YouTube Music**: Songs, playlists, and 4K videos.
+            - **Spotify & Apple Music**: Single tracks with album art & tags.
+            - **Instagram**: Reels, Stories, and video posts.
+            - **TikTok & Twitter / X**: Watermark-free downloads.
+            - **Adult Sites**: Pornhub, Xvideos, XNXX, etc. with automatic proxy unblocking.
+            - **No Setup Needed**: Bundled FFmpeg, MP3 conversion, background downloads, and built-in offline media player!
+          files: release-output/UniGrab.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
