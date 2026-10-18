@@ -1267,12 +1267,22 @@
                             const card = document.getElementById(`task-card-${tid}`);
                             if (card && !card.dataset.completedHandled) {
                                 card.dataset.completedHandled = "true";
-                                showToast(`Finished: ${task.title}`, 'success');
+                                showToast(`Finished: ${task.title}. Downloading to device...`, 'success');
                                 fetchLibrary();
-                                // Keep showing card as success for 3 seconds then remove
+                                
+                                // Auto-trigger browser download to the user's physical device
+                                if (task.results && task.results.length > 0) {
+                                    task.results.forEach(res => {
+                                        if (res.webpath) {
+                                            downloadToDevice(res.webpath, res.filename || res.title);
+                                        }
+                                    });
+                                }
+                                
+                                // Keep showing card as success with download button for 6 seconds then remove
                                 const statusLabelEl = card.querySelector('.task-status-label');
-                                if (statusLabelEl) statusLabelEl.innerText = "Success";
-                                setTimeout(() => removeActiveTaskUI(tid), 3000);
+                                if (statusLabelEl) statusLabelEl.innerText = "Downloaded";
+                                setTimeout(() => removeActiveTaskUI(tid), 6000);
                             }
                         } else if (task.status === 'failed') {
                             const card = document.getElementById(`task-card-${tid}`);
@@ -1373,7 +1383,11 @@
                     <div class="flex items-center gap-2 flex-shrink-0 ml-2">
                         <span class="task-status-label text-secondary font-label-md font-bold text-sm bg-secondary/10 px-2 py-0.5 rounded-md border border-secondary/20">${statusLabel}</span>
                         
-                        <!-- Action buttons -->
+                        ${task.status === 'completed' && task.results && task.results.length > 0 ? `
+                            <button onclick="downloadToDevice('${escapeJsString(task.results[0].webpath)}', '${escapeJsString(task.results[0].filename || task.title)}')" title="Save to Device" class="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 flex items-center justify-center transition-colors">
+                                <span class="material-symbols-outlined text-sm">download</span>
+                            </button>
+                        ` : ''}
                         ${task.status === 'downloading' ? `
                             <button onclick="pauseTask('${task.task_id}')" title="Pause Download" class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-yellow-500/20 hover:text-yellow-400 flex items-center justify-center transition-colors">
                                 <span class="material-symbols-outlined text-sm">pause</span>
@@ -1496,6 +1510,10 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button onclick="downloadToDevice('${escapeJsString(file.webpath)}', '${escapeJsString(file.filename)}')" title="Save to Device" class="w-10 h-10 rounded-full glass-card flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined">download</span>
+                        </button>
+
                         <button onclick="openFile('${escapeJsString(file.filepath)}')" title="Open File" class="w-10 h-10 rounded-full glass-card flex items-center justify-center hover:bg-secondary/20 hover:text-secondary transition-colors">
                             <span class="material-symbols-outlined">launch</span>
                         </button>
@@ -1507,6 +1525,20 @@
                 `;
                 listEl.appendChild(itemEl);
             });
+        }
+
+        function downloadToDevice(webpath, filename) {
+            if (!webpath) return;
+            const downloadUrl = webpath.includes('?') 
+                ? `${webpath}&download=1&filename=${encodeURIComponent(filename || 'download')}` 
+                : `${webpath}?download=1&filename=${encodeURIComponent(filename || 'download')}`;
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = downloadUrl;
+            a.setAttribute('download', filename || 'download');
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => a.remove(), 1000);
         }
 
 

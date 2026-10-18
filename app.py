@@ -629,7 +629,9 @@ def api_serve_media():
     if not path.is_file() or not path.exists():
         return jsonify({"error": "File not found"}), 404
         
-    return send_file(path)
+    as_attachment = request.args.get("download", "").lower() in ("1", "true", "yes")
+    download_name = request.args.get("filename") or path.name
+    return send_file(path, as_attachment=as_attachment, download_name=download_name)
 
 
 @app.route("/api/open-folder", methods=["POST"])
