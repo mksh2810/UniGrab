@@ -64,6 +64,24 @@ BASE_DOWNLOAD_DIR = Path("/tmp/downloads") if IS_VERCEL else (BASE_DIR / "downlo
 (BASE_DOWNLOAD_DIR / "videos").mkdir(parents=True, exist_ok=True)
 
 LIBRARY_JSON_PATH = BASE_DOWNLOAD_DIR / "library.json"
+UPLOADED_COOKIES_PATH = BASE_DOWNLOAD_DIR / "user_cookies.txt"
+
+def init_environment_cookies():
+    cookie_content = (
+        os.environ.get("YOUTUBE_COOKIES") or 
+        os.environ.get("COOKIES_TEXT") or 
+        os.environ.get("COOKIES_CONTENT")
+    )
+    if cookie_content and len(cookie_content.strip()) > 10:
+        try:
+            UPLOADED_COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(UPLOADED_COOKIES_PATH, "w", encoding="utf-8") as f:
+                f.write(cookie_content.strip() + "\n")
+            print(f"[Cookies] Successfully loaded environment cookies into {UPLOADED_COOKIES_PATH}")
+        except Exception as e:
+            print(f"[Cookies] Failed to save environment cookies: {e}")
+
+init_environment_cookies()
 
 def load_library_db():
     if LIBRARY_JSON_PATH.exists():
@@ -274,6 +292,11 @@ def run_download_thread(task_id, resolved, options):
         err_str = str(e)
         if "instagram" in str(resolved.source).lower() and ("empty media" in err_str.lower() or "not granting access" in err_str.lower() or "login" in err_str.lower()):
             err_str = "Instagram requires login cookies for this Reel/Post. Please provide cookies in Settings."
+        elif "sign in to confirm" in err_str.lower() or "not a bot" in err_str.lower():
+            if IS_VERCEL or bool(os.environ.get("VERCEL")):
+                err_str = "YouTube blocks cloud servers (AWS/Vercel) from anonymous downloads. To download on Vercel: Go to Settings > Upload cookies.txt (or Paste Cookies), or add YOUTUBE_COOKIES to your Vercel Environment Variables."
+            else:
+                err_str = "YouTube requires authentication for this video. Please upload or paste cookies in Settings."
         with tasks_lock:
             t = tasks.get(task_id)
             if t and t["status"] == "cancelled":
@@ -648,6 +671,45 @@ def api_library():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/upload-cookies", methods=["POST"])
+def api_upload_cookies():
+    content = ""
+    if "file" in request.files:
+        f = request.files["file"]
+        if f and f.filename:
+            content = f.read().decode("utf-8", errors="ignore")
+    elif request.is_json:
+        content = (request.json or {}).get("cookies_text", "")
+    else:
+        content = request.form.get("cookies_text", "")
+        
+    content = content.strip()
+    if not content:
+        return jsonify({"error": "No cookie content provided"}), 400
+
+    try:
+        UPLOADED_COOKIES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(UPLOADED_COOKIES_PATH, "w", encoding="utf-8") as f:
+            f.write(content + "\n")
+        return jsonify({
+            "success": True, 
+            "message": "Cookies saved successfully to server!", 
+            "cookie_path": str(UPLOADED_COOKIES_PATH.resolve())
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to save cookies: {str(e)}"}), 500
+
+
+@app.route("/api/clear-cookies", methods=["POST"])
+def api_clear_cookies():
+    try:
+        if UPLOADED_COOKIES_PATH.exists():
+            UPLOADED_COOKIES_PATH.unlink()
+        return jsonify({"success": True, "message": "Server cookies cleared successfully!"})
+    except Exception as e:
+        return jsonify({"error": f"Failed to clear cookies: {str(e)}"}), 500
+
+
 @app.route("/api/serve-media")
 def api_serve_media():
     file_path = request.args.get("path")
@@ -890,9 +952,16 @@ def api_doctor():
     except ImportError:
         ffmpeg_status = ffmpeg_exe or "missing"
 
+    cookies_installed = False
+    try:
+        cookies_installed = UPLOADED_COOKIES_PATH.exists() and UPLOADED_COOKIES_PATH.stat().st_size > 0
+    except Exception:
+        pass
+
     return jsonify({
         "download_engine": yt_dlp_status,
         "ffmpeg": ffmpeg_status,
+        "cookies_installed": cookies_installed,
         "status": "ok" if yt_dlp_status == "installed" and ffmpeg_status != "missing" else "error"
     })
 

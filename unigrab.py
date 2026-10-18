@@ -246,9 +246,20 @@ def ensure_prebuilt_cookies(source_url: str | None = None) -> str:
 def get_cookies_file(specified_cookies: str | None = None, source_url: str | None = None) -> str | None:
     if specified_cookies:
         return specified_cookies
-    env_cookies = os.environ.get("UNIGRAB_COOKIES")
-    if env_cookies:
+    env_cookies = os.environ.get("UNIGRAB_COOKIES") or os.environ.get("YOUTUBE_COOKIES_FILE")
+    if env_cookies and Path(env_cookies).exists():
         return env_cookies
+    # Check uploaded or environment user cookies on server
+    for candidate in [
+        Path("/tmp/downloads/user_cookies.txt"),
+        Path.cwd() / "downloads" / "user_cookies.txt",
+        Path.home() / ".unigrab" / "user_cookies.txt"
+    ]:
+        try:
+            if candidate.exists() and candidate.stat().st_size > 0:
+                return str(candidate.resolve())
+        except Exception:
+            pass
     # Prebuilt adult cookies are only for adult sites, never YouTube
     if source_url and YtDlpMetadataResolver._is_youtube_host(source_url):
         return None
