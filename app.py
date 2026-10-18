@@ -250,12 +250,20 @@ def run_download_thread(task_id, resolved, options):
     reporter = WebDownloadReporter(task_id)
     downloader = YtDlpDownloader()
     try:
-        downloader.download(resolved, options, reporter=reporter)
+        results = downloader.download(resolved, options, reporter=reporter)
+        successful = [r for r in results if r.output_path and r.output_path.exists() and r.output_path.stat().st_size > 0]
         with tasks_lock:
             t = tasks.get(task_id)
             if t:
                 if t["status"] == "cancelled":
                     t["logs"].append("\nDownload cancelled by user.")
+                elif not successful:
+                    t["status"] = "failed"
+                    err_msg = "Download failed: No output file was created."
+                    if "instagram" in str(resolved.source).lower():
+                        err_msg = "Download failed: Instagram requires login cookies for this Reel/Post. Please provide cookies in Settings."
+                    t["error"] = err_msg
+                    t["logs"].append(f"\n[error] {err_msg}")
                 else:
                     t["status"] = "completed"
                     t["overall_progress"] = 1.0
@@ -263,6 +271,9 @@ def run_download_thread(task_id, resolved, options):
                     t["logs"].append("\nDownload collection completed successfully!")
             save_tasks_db(tasks)
     except Exception as e:
+        err_str = str(e)
+        if "instagram" in str(resolved.source).lower() and ("empty media" in err_str.lower() or "not granting access" in err_str.lower() or "login" in err_str.lower()):
+            err_str = "Instagram requires login cookies for this Reel/Post. Please provide cookies in Settings."
         with tasks_lock:
             t = tasks.get(task_id)
             if t and t["status"] == "cancelled":
@@ -276,8 +287,8 @@ def run_download_thread(task_id, resolved, options):
             if t:
                 if t["status"] != "cancelled":
                     t["status"] = "failed"
-                    t["error"] = str(e)
-                    t["logs"].append(f"\nFailed: {str(e)}")
+                    t["error"] = err_str
+                    t["logs"].append(f"\nFailed: {err_str}")
             save_tasks_db(tasks)
     finally:
         with active_processes_lock:
