@@ -1043,7 +1043,9 @@ class YtDlpMetadataResolver:
                 "--no-check-certificates",
                 "--legacy-server-connect",
                 ]
-            if not self._is_youtube_host(metadata_source):
+            if self._is_youtube_host(metadata_source):
+                resolve_args.extend(["--extractor-args", "youtube:player_client=web_safari,web_embedded,default"])
+            else:
                 resolve_args.extend([
                     "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                     "--referer", "https://www.google.com/",
@@ -1982,7 +1984,9 @@ class YtDlpDownloader:
             "--fragment-retries", "5",
             "--socket-timeout", "30",
         ]
-        if not is_yt:
+        if is_yt:
+            args.extend(["--extractor-args", "youtube:player_client=web_safari,web_embedded,default"])
+        else:
             args.extend([
                 "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                 "--referer", "https://www.google.com/",
