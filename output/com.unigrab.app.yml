@@ -26,14 +26,14 @@ RepoType: git
 Repo: https://github.com/mksh2810/UniGrab.git
 
 Builds:
-  - versionName: 1.0.0
+  - versionName: 1.0.1
     versionCode: 1
-    commit: v1.0.0
+    commit: v1.0.1
     subdir: UniGrabApp/app
     gradle:
       - yes
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 1.0.0
+CurrentVersion: 1.0.1
 CurrentVersionCode: 1
