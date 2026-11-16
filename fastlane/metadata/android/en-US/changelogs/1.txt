@@ -1,0 +1,7 @@
+• Initial public release
+• Native Jetpack Compose UI with dark mode aura styling
+• Segmented Audio / Video mode selector
+• Aria2c multi-threaded concurrent download engine
+• Real-time Activity task queue with live yt-dlp logs
+• Local Library browser for instant playback
+• In-app engine updater for yt-dlp binary

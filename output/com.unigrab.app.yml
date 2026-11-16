@@ -1,0 +1,38 @@
+Categories:
+  - Multimedia
+  - Internet
+License: GPL-3.0-only
+SourceCode: https://github.com/mksh2810/UniGrab
+IssueTracker: https://github.com/mksh2810/UniGrab/issues
+
+Summary: Fast, 100% client-side media downloader with zero ads or tracking
+
+Description: |-
+  UniGrab is a high-performance, open-source media downloader designed for
+  privacy, speed, and simplicity. Powered directly on-device by yt-dlp and
+  aria2c, UniGrab runs entirely on your phone—bypassing the need for sketchy
+  web downloaders and cloud proxies.
+
+  Features:
+  * Zero Cloud Servers: Downloads connect directly from source to phone storage.
+  * Multi-Threaded Speed: Integrated Aria2c multi-segmented downloading.
+  * 1,800+ Websites: YouTube, Instagram, TikTok, Spotify, and direct HLS streams.
+  * High-Fidelity Audio & Video: Up to 4K/8K, or audio with embedded album cover art.
+  * Real-Time Task Manager: Pause, resume, and live console logs.
+  * 1-Tap Engine Updater: On-device yt-dlp updates with one tap.
+
+RepoType: git
+Repo: https://github.com/mksh2810/UniGrab.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: UniGrabApp/app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

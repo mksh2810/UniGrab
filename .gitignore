@@ -27,3 +27,8 @@ UniGrabApp/*.apk
 UniGrabApp/**/*.apk
 UniGrabApp/library.zip
 
+# Video renders and scratch cache
+brag-output/
+output/*.mp4
+
+

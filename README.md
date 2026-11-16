@@ -1,10 +1,56 @@
 # UniGrab
 
-A clean CLI for downloading music and videos from popular media sites.
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/icon.png" width="96" height="96" alt="UniGrab Logo" />
+</p>
 
-This project does not bypass DRM, subscriptions, paywalls, or platform access controls. Use it only for media you own, created, licensed, or otherwise have permission to download.
+<p align="center">
+  <b>Fast, 100% client-side media downloader for Android and CLI.</b><br />
+  Grab 4K video and lossless audio from 1,800+ sites with zero servers, zero ads, and multi-threaded Aria2c acceleration.
+</p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/mksh2810/UniGrab/releases/latest"><img src="https://img.shields.io/github/v/release/mksh2810/UniGrab?logo=github&style=flat-square" alt="Latest Release" /></a>
+  <a href="https://github.com/mksh2810/UniGrab/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=flat-square" alt="License: GPL-3.0" /></a>
+  <a href="https://github.com/mksh2810/UniGrab/releases/latest/download/UniGrab.apk"><img src="https://img.shields.io/badge/Download-APK-brightgreen?logo=android&style=flat-square" alt="Download APK" /></a>
+  <a href="https://github.com/ImranR98/Obtainium"><img src="https://img.shields.io/badge/Install%20via-Obtainium-4183C4?logo=android&logoColor=white&style=flat-square" alt="Obtainium" /></a>
+  <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-orange?style=flat-square" alt="Android 8.0+" />
+</p>
+
+---
+
+## 📱 UniGrab for Android (Native App)
+
+UniGrab is a modern, native Android application built with **Jetpack Compose (Material 3)**. It runs `yt-dlp` and `aria2c` directly on your device with **zero server dependencies** — ensuring total privacy and maximum download speeds.
+
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" width="18%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" width="18%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" width="18%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg" width="18%" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg" width="18%" />
+</p>
+
+### Key App Features:
+- **100% Client-Side:** No cloud servers or proxies. Connections go directly from the source to your phone storage.
+- **Aria2c Multi-Threading:** Segmented chunk downloading saturates Wi-Fi and 5G cellular bandwidth.
+- **Lossless Audio & 4K/8K Video:** Format conversion with automatic high-res album cover art and ID3 metadata tagging.
+- **1,800+ Supported Sites:** YouTube (4K/60fps/Shorts), Spotify, Instagram Reels, TikTok, Twitter/X, SoundCloud, Twitch, and direct M3U8/HLS streams.
+- **Real-Time Task Queue:** Pause, resume, and track active downloads with live process console logs.
+- **Offline Media Library:** Saved directly to your device storage (playable in VLC, MX Player, or any media player).
+- **1-Tap Engine Updater:** Update the core `yt-dlp` binary on-device anytime with one tap.
+
+### 📥 Download & Install
+
+| Method | Instructions |
+|---|---|
+| **Direct APK** | [**Download UniGrab.apk**](https://github.com/mksh2810/UniGrab/releases/latest/download/UniGrab.apk) from the latest release and install directly. |
+| **Obtainium** *(Auto-updates)* | Add `https://github.com/mksh2810/UniGrab` into [Obtainium](https://github.com/ImranR98/Obtainium) for 1-tap installation and automatic background updates. |
+| **F-Droid / IzzyOnDroid** | Fastlane metadata is included in `fastlane/metadata/android/` for F-Droid and IzzyOnDroid inclusion. |
+
+---
+
+## 💻 UniGrab CLI (Terminal / Desktop)
 
 - Explicit modes: `m` for music (songs, albums, playlists, podcasts/shows), `v` for video.
 - Separate output folders: `downloads/music` and `downloads/videos`.

@@ -1,0 +1,13 @@
+UniGrab is a high-performance, open-source media downloader designed for privacy, speed, and simplicity. Powered directly on-device by yt-dlp and aria2c, UniGrab runs entirely on your phone—bypassing the need for sketchy web downloaders and cloud proxies.
+
+<b>Features:</b>
+• <b>Zero Cloud Servers:</b> Downloads connect directly from the content source to your device storage. No logs, no analytics, no intermediaries.
+• <b>Multi-Threaded Speed:</b> Integrated Aria2c downloader splits files into concurrent segments, dramatically cutting download times.
+• <b>1,800+ Websites:</b> Seamlessly parse links from major video, music, social, and podcast platforms including YouTube, Instagram, TikTok, Spotify, Twitter/X, and direct HLS streams.
+• <b>High-Fidelity Audio & Video:</b> Grab resolutions from 144p up to 4K/8K, or convert audio with embedded album cover art and artist metadata tags.
+• <b>Real-Time Task Manager:</b> Pause, resume, and track active downloads with access to live process console logs.
+• <b>Offline Media Library:</b> Files are saved in open standard formats directly to your storage—free from DRM and playable in any media app (VLC, MX Player).
+• <b>1-Tap Engine Updater:</b> Keep up with site changes with the built-in yt-dlp engine updater.
+
+<b>Privacy:</b>
+UniGrab is strictly open-source (GPL-3.0) and contains no advertisements, telemetry, or user tracking. Storage permissions are requested solely to save media to your local device.

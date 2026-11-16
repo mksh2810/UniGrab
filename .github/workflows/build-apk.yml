@@ -49,20 +49,25 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: "UniGrab Android App (Latest)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.0.0' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('UniGrab {0}', github.ref_name) || 'UniGrab v1.0.0 (Release)' }}
+          generate_release_notes: true
           body: |
             ### UniGrab for Android 🚀
             
-            Download and install **`UniGrab.apk`** directly on your Android phone!
+            Download and install **`UniGrab.apk`** directly on your Android device!
             
-            #### Features & Supported Platforms:
-            - **YouTube & YouTube Music**: Songs, playlists, and 4K videos.
-            - **Spotify & Apple Music**: Single tracks with album art & tags.
-            - **Instagram**: Reels, Stories, and video posts.
-            - **TikTok & Twitter / X**: Watermark-free downloads.
-            - **Adult Sites**: Pornhub, Xvideos, XNXX, etc. with automatic proxy unblocking.
-            - **No Setup Needed**: Bundled FFmpeg, MP3 conversion, background downloads, and built-in offline media player!
+            #### ✨ Highlights:
+            - **100% Client-Side & Private**: Runs directly on your device, zero cloud servers, zero trackers or ads.
+            - **Aria2c Multi-Threading**: Multi-segmented concurrent chunk downloading for maximum speed.
+            - **Lossless Audio & 4K/8K Video**: High-res album covers, ID3 metadata tags, and subtitle downloads.
+            - **1,800+ Supported Sites**: YouTube (4K/Shorts), Spotify, Instagram Reels, TikTok, Twitter/X, SoundCloud, Archive.org, and direct HLS/M3U8 streams.
+            - **Task Queue & Logs**: Real-time progress with instant pause/resume and live console output.
+            - **Offline Media Library**: Saves directly to device storage, playable with any local media player (VLC, MX Player).
+            - **1-Tap Engine Updater**: Update yt-dlp core on-device with one tap.
+            
+            #### 📱 Fast Install via Obtainium:
+            Add `https://github.com/mksh2810/UniGrab` to [Obtainium](https://github.com/ImranR98/Obtainium) for 1-tap installation and automatic background updates!
           files: release-output/UniGrab.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
