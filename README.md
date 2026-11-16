@@ -13,6 +13,7 @@
   <a href="https://github.com/mksh2810/UniGrab/releases/latest"><img src="https://img.shields.io/github/v/release/mksh2810/UniGrab?logo=github&style=flat-square" alt="Latest Release" /></a>
   <a href="https://github.com/mksh2810/UniGrab/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg?style=flat-square" alt="License: GPL-3.0" /></a>
   <a href="https://github.com/mksh2810/UniGrab/releases/latest/download/UniGrab.apk"><img src="https://img.shields.io/badge/Download-APK-brightgreen?logo=android&style=flat-square" alt="Download APK" /></a>
+  <a href="https://github.com/sponsors/mksh2810"><img src="https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github&style=flat-square" alt="Sponsor on GitHub" /></a>
   <a href="https://github.com/ImranR98/Obtainium"><img src="https://img.shields.io/badge/Install%20via-Obtainium-4183C4?logo=android&logoColor=white&style=flat-square" alt="Obtainium" /></a>
   <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-orange?style=flat-square" alt="Android 8.0+" />
 </p>
