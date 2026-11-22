@@ -47,7 +47,6 @@ UniGrab is a modern, native Android application built with **Jetpack Compose (Ma
 |---|---|
 | **Direct APK** | [**Download UniGrab.apk**](https://github.com/mksh2810/UniGrab/releases/latest/download/UniGrab.apk) from the latest release and install directly. |
 | **Obtainium** *(Auto-updates)* | Add `https://github.com/mksh2810/UniGrab` into [Obtainium](https://github.com/ImranR98/Obtainium) for 1-tap installation and automatic background updates. |
-| **F-Droid / IzzyOnDroid** | Fastlane metadata is included in `fastlane/metadata/android/` for F-Droid and IzzyOnDroid inclusion. |
 
 ---
 
